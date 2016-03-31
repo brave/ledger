@@ -39,7 +39,7 @@ There are two ways in which "money leaves the system":
 - a persona with a `Bravery` setting of `ad-replacement` receives a percentage of the advertiser payments;
 
 - a publisher receives a share of the aggregated payments associated with
-the viewing habits of personas who visit that publisher's site; and,
+the viewing habits of personas who visit that publisher's site.
 
 Of course,
 Brave Software receives a percentage of the payments entering the system.
@@ -88,8 +88,8 @@ Similarly,
 the total payments from advertisers are aggregated into one sum,
 and the total views from the `ad-replacement` personas are aggregated into a weighted list for publishers.
 From the total payment,
-our ad-match partner takes a share (15%)
-Brave Software takes a share (15%)
+our ad-match partner takes a share (15%),
+Brave Software takes a share (15%),
 a certain percentage of the total payment is reserved for `ad-replacement` personas (15%),
 and the remaining amount is allocated to the publishers (e.g., 55%).
 The payment to each publisher is then calculated using the weighted-ratio method.
