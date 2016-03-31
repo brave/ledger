@@ -1,4 +1,4 @@
-# Principles of Using the Brave Ledger (0.3.2)
+# Principles of Using the Brave Ledger (0.3.3)
 The Brave Ledger is a BTC-based micropayments system for users and publishers.
 
 To begin to understand the Ledger,
@@ -88,9 +88,10 @@ Similarly,
 the total payments from advertisers are aggregated into one sum,
 and the total views from the `ad-replacement` personas are aggregated into a weighted list for publishers.
 From the total payment,
-Brave Software's processing fee is subtracted,
-a certain percentage of the total payment is reserved for `ad-replacement` personas (e.g., 15%),
-and the remaining amount is allocated to the publishers (e.g., 70%).
+our ad-match partner takes a share (15%)
+Brave Software takes a share (15%)
+a certain percentage of the total payment is reserved for `ad-replacement` personas (15%),
+and the remaining amount is allocated to the publishers (e.g., 55%).
 The payment to each publisher is then calculated using the weighted-ratio method.
 In order to enhance privacy,
 the payment to each `ad-replacement` persona are calculated independently of the actual impressions served to each persona --
