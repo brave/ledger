@@ -154,13 +154,15 @@ the reporter is able to determine whether the request is a duplicate.
 Of course,
 this is a very simplistic explanation of how Anonize works.
 If you'd like more details,
-here are two excellent technical papers:
+here are two excellent technical papers and a pointer to an open source repository:
 
 * [An Overview of ANONIZE: A Large-Scale Anonymous Survey System](https://anonize.org/assets/anonize-ieee-special.pdf),
 IEEE Security and Privacy Magazine, 2015.
 
 * [ANONIZE: A Large-Scale Anonymous Survey System](https://anonize.org/assets/anonize-oak-camera.pdf),
 Oakland Security and Privacy Conference, 2014.
+
+* [abhi/anonize2](https://gitlab.com/abhvious/anonize2)
 
 ### Taxonomy of Servers
 All servers described in the model are operated by Brave Software.
