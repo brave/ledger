@@ -1,4 +1,4 @@
-# Principles of Using the Brave Ledger (0.3.3)
+# Principles of Using the Brave Ledger (0.3.4)
 The Brave Ledger is a BTC-based micropayments system for users and publishers.
 
 To begin to understand the Ledger,
@@ -401,6 +401,30 @@ and credits the associated wallets equally.
 then the balance of the wallet is transferred to an escrow account for the next monthly period.
 
 ## Wallet Management
+A Brave wallet is a hierarchical deterministic wallet (or "HD Wallet"),
+that can be shared partially or entirely with different systems.
+These HD wallets require 2 of 3 signatures in order to perform an operation.
+
+When a Brave wallet is created,
+BitGo (the wallet provider) keeps one signature,
+Brave Software keeps one signature,
+and the third is sent to the BTC backup key provider [keytern.al](https://keytern.al).
+Among other things,
+this gives Brave Software the ability to check the balance and make withdrawals from the wallet,
+which is sufficent for `ad-free` personas.
+It also gives Brave Software the ability to make deposits,
+which is sufficent for `ad-replacement` personas that do not wish to make withdrawals.
+
+If a Brave wallet is to be verified,
+then during the the verification process,
+the `ad-replacement` persona creates an ECDH sharing key,
+which in turn is used in an ECDH key exchange,
+allowing Brave Software to share the wallet key with the persona.
+If the `ad-replacement` persona accepts the share,
+it then encrypts the wallet key with its own wallet password and stores it with BitGo.
+Hence,
+the `ad-replacement` persona is now able to make withdrawals,
+either using the BitGo website or as part of the client's user interface.
 
 ### Ad-free personas
 The client prompts the user,
