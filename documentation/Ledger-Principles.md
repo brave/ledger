@@ -1,4 +1,4 @@
-# Principles of Using the Brave Ledger (0.3.4)
+# Principles of Using the Brave Ledger (0.6.3)
 The Brave Ledger is a BTC-based micropayments system for users and publishers.
 
 To begin to understand the Ledger,
@@ -295,24 +295,26 @@ the ad-free behavior is:
 
 #### Client/Server Interaction
 
-1. The client performs the `PUT /v1/wallet/{paymentId}` operation with the Wallet Manager.
+1. The client invokes the `GET /v1/surveyor/browsing/{surveyorId}/{paymentId}` operation on the Browsing Reporter
+to retrieve the information necessary to submit a proof,
+and to get the current `{periodId}`.
 
-2. The Wallet Manager sends the associated BTC address to the accounting server for "offnet" processing.
+2. The client performs the `PUT /v1/wallet/{paymentId}` operation with the Wallet Manager,
+including the `{periodId}`.
 
-3. The accounting server initiates a BTC transfer from that wallet to a Brave escrow account.
+3. The Wallet Manager sends the associated BTC address to the accounting server for "offnet" processing.
 
-4. On success,
+4. The accounting server initiates a BTC transfer from that wallet to a Brave escrow account.
+
+5. On success,
 the accounting server informs the Wallet Manager that the `paymentId` is authorized to submit a proof for a given `surveyorId`.
 
-5. The client periodically polls performing the `GET /v1/wallet/{paymentId}` operation with the Wallet Manager to determine
+6. The client periodically polls performing the `GET /v1/wallet/{paymentId}` operation with the Wallet Manager to determine
 the the URL of the Browsing Reporter and the `surveyorId` to use.
 (This is necessary to ensure that the transaction has been successfully completed by the accounting server --
 in practice,
 the client _could_ monitor the BTC blockchain to look for the transaction -- several companies provide API access,
 e.g., [BitGo](https://www.bitgo.com/platform), [Blocktrail](https://www.blocktrail.com/api), etc.)
-
-6. The client invokes the `GET /v1/surveyor/browsing/{surveyorId}/{paymentId}` operation on the Browsing Reporter
-to retrieve the information necessary to submit a proof.
 
 7. On success,
 the Browsing Reporter returns the result of its calculations.
@@ -323,7 +325,30 @@ the Browsing Reporter returns the result of its calculations.
 and does not proceed until an unpredictable delay (of upto 24 hours) occurs.
 
 10. The client performs the `PUT /v1/surveyor/browsing/{surveyorId}` operation with its proof and a summary of the 
-browsing history (e.g., "the top 20 sites by time spent").
+browsing history, e.g., the top 20 sites by time spent conforming to this
+[JSON schema](http://json-schema.org/latest/json-schema-core.html):
+
+
+        { "id": "http://brave.com/report-schema#"
+        , "$schema": "http://json-schema.org/draft-04/schema#"
+        , "type": "object"
+        , "properties":
+          { "report":
+            { "type": "array"
+            , "minItems": 1
+            , "items":
+              { "type": "object"
+              , "properties":
+                { "site": { "type": "string", "format": "uri" }
+                , "weight": { "type": "number" }
+                }
+              , "required": [ "site", "weight" ]
+              }
+            }
+          }
+        , "required": [ "report" ]
+        }
+
 
 11. On success,
 the Browsing Reporter sends the `surveyorId` and browsing history to the accounting server for "offnet" processing.
@@ -448,7 +473,7 @@ which redirects the user to [BitGo's servers via the OAuth process](https://www.
 The user will authorize their existing account (or more likely create a new one) and allow Brave Software access to that
 account.
 In order to createa BitGo account,
-the user must be able to demonstrate control of a mailbox and a phone number
+the user must be able to demonstrate **unique** control of both a mailbox and a phone number
 (for [2FA](https://en.wikipedia.org/wiki/Two-factor_authentication)).
 
 On success,
