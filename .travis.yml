@@ -1,0 +1,28 @@
+language: node_js
+node_js:
+  - 5.6.0
+services:
+  - mongodb
+  - redis-server
+addons:
+  apt:
+    sources:
+      - mongodb-3.0-precise
+    packages:
+      - mongodb-org-server
+before_script:
+  - sleep 15
+  - cp config/config.development.js.tpl config/config.development.js
+  - DEBUG=server ./node_modules/.bin/babel-node src/index.js &
+  - sleep 30
+script:
+  - gulp angry-lint
+  - node_modules/ledger-client/blastoff.js
+notifications:
+  slack:
+    rooms:
+      - secure: "ORKo+EDrWwolKaVvZRdDeE+I90c/rJ42voZMvHJ9uyUE8j6ulAChnDKf/psp9WNEVDZYjntFI+gwsCN9/oF/wr6zWxPbVIUgyGL8e9lNBk9nR8/PUG2oXHR3rUeqb4ytyibD6BCBVTL5aZs+WIp+Fv80UPXIDx0pvPb7/getf/kg6qc0ELhxfb06eN0mn84xZYYB1np+yr3XIkzOhzZvyJBHZo3y1KRVK0rkZuWpyUPnviQcCAxdK22ZU0wEEx6NXT7Krh4yb3tn+vpvMVzXOx8ZNp77DIUaGeJFicnDO1DEfh6g9axPFpyJ3fzI9Z1MPGesYF5qNCXCdhgnlJVxMSmlPQc4WfmwA61IpNP35sA+z+lCelXvJwtRJbL7OZCCW4TP66qeBEO8xfwhkJQHe3LsRilhRlovwTRnWQa0e1/Kg3XuWov+lXUcVWDzYTH5S79AYq+hlJE0IAnKIAR57EsOjCeJvQjBAt5jqDcW+lpGRV4dWQlAOZXzsiTVFrkCFPT2LLfNaLPwkhtglga7HTqWua+SNS2XR91jQ1p4284X3UmCrogTNMUqEqDHlu9LDJ8fOANmuNeIYJDUjE9iV9MEQgBbZydSe2qz+LoYCvsN88gSxS/OE7hW4r3sYUu6my0wURrpgHijqnask4P3qrQYDDedEdwJMVeLhZfLjPM="
+      -   secure: "B9umPl/sztnQ7qJPIx7zEDMorHszqzTPsbko1Xr0KrDRdKyvdSRthzscIf3F2qa7GOTxDPIi5cn6LW0n3u9re9Ofdmy25BUcdZYOU692At7oKdSUWi8YlmndbPSiPbmoo6HUgj1QwHlXq+JbJCYYrObwolaLOjueINjdX/D8ypOOfFvk9xMCrZWDmAbMNRSunBuVEsh8EDIluchrUFpQZxTL7WIK4UdjVSEGOLSIGjnBTHqk3qgvis4Q+kf3KEOrQz207v3pnBWF+sjugNABYanuQhnMH6AGtoJ4A9KbQV5kAUGHEdPseDW24yg16tJiKWE531vbRReISNktycTeU+d+zUU+XA0Uxxe0X24LnP5VDaSnf1BtEQmOWMz8okz+jMqMh5ad7Z8ch67mDwc23bsov0gqJJUaRbnARa2Jtz43nnZGB5WlIwr7fwWdl0gY9FaQ7dEBXvsza+klibNTM4Nh84Md6yakXsDoLYhABl2ZyyLhDprvaF/WhJk0uYl8QlahhLjdT1AXpWHhqcXjOi4yFjeJWlEUHtjm9Sy8uS3NYONVYqLgSSpPML6WHaOObLK/OpTbKW6LFcjrWkDwLA5/uOFGOonWTUbPt1SK/08BbZ4sTKNlUjtJNIPUKn5gNH5MDx7WmkgsBT4ZnTP/pLPiJVKSCudelSM/v7vwbwE="
+branches:
+  except:
+    - stable
