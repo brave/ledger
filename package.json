@@ -1,0 +1,80 @@
+{
+  "name": "ledger",
+  "version": "0.8.40",
+  "description": "A BTC micropayments system for users and publishers.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "gulp lint",
+    "server": "./node_modules/.bin/babel-node src/index.js",
+    "start": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node src/index.js",
+    "test": "npm run test-security",
+    "test-security": "nsp check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brave/ledger.git"
+  },
+  "author": "Brave Developers <support@brave.com>",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/brave/ledger/issues"
+  },
+  "homepage": "https://github.com/brave/ledger",
+  "dependencies": {
+    "babel-cli": "^6.1.2",
+    "babel-preset-stage-2": "^6.1.2",
+    "bell": "6.0.0",
+    "bitcoinjs-lib": "^2.2.0",
+    "bitgo": "^1.8.0",
+    "blipp": "2.3.0",
+    "boom": "3.0.0",
+    "bs58check": "^1.0.5",
+    "bson": "0.4.19",
+    "coinbase": "^2.0.5",
+    "crumb": "6.0.0",
+    "cryptiles": "3.0.0",
+    "currency-codes": "1.1.2",
+    "github": "0.2.4",
+    "hapi": "^12.1.0",
+    "hapi-async-handler": "^1.0.3",
+    "hapi-auth-cookie": "3.1.0",
+    "hapi-swagger": "^6.1.0",
+    "inert": "^3.2.0",
+    "joi": "^9.0.0-2",
+    "ledger-balance": "^0.8.40",
+    "ledger-publisher": "^0.8.39",
+    "moment": "^2.13.0",
+    "mongodb": "1.4.39",
+    "monk": "https://github.com/brave/monk.git",
+    "monotonic-timestamp": "0.0.9",
+    "node-anonize2-relic-emscripten": "https://github.com/brave/node-anonize2-relic-emscripten.git",
+    "node-uuid": "1.4.7",
+    "newrelic": "1.23.1",
+    "rsmq": "^0.7.0",
+    "rsmq-worker": "^0.4.1",
+    "sdebug": "^0.9.0",
+    "underscore": "1.8.3",
+    "vision": "^4.0.0",
+    "wreck": "7.0.0"
+  },
+  "engines": {
+    "node": "5.6.0",
+    "npm": "3.6.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^4.1.3",
+    "babel-polyfill": "^6.0.16",
+    "code": "2.0.1",
+    "del": "^2.0.2",
+    "gulp": "^3.9.0",
+    "gulp-nodemon": "^2.0.3",
+    "gulp-shell": "^0.5.1",
+    "gulp-standard": "^5.2.2",
+    "nsp": "^2.2.0",
+    "rsmq-cli": "^0.1.1",
+    "run-sequence": "^1.1.0"
+  },
+  "standard": {
+    "parser": "babel-eslint"
+  }
+}
