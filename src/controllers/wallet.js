@@ -34,7 +34,7 @@ v1.read =
     if (balanceP || refreshP) {
       balances = await runtime.wallet.balances(wallet)
 
-      if (!underscore.equal(balances, wallet.balances)) {
+      if (!underscore.equals(balances, wallet.balances)) {
         state = { $currentDate: { timestamp: { $type: 'timestamp' } },
                   $set: { balances: balances }
                 }
