@@ -19,16 +19,27 @@ var v1 = {}
 v1.sink =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var state
+    var wallet, state
     var debug = braveHapi.debug(module, request)
+    var payload = request.payload || {}
+    var address = payload.walletId
+    var wallets = runtime.db.get('wallets', debug)
     var webhooks = runtime.db.get('webhooks', debug)
 
     state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { provider: 'bitgo', payload: request.payload }
+              $set: { provider: 'bitgo', payload: payload }
             }
     await webhooks.update({ webhookId: uuid.v4() }, state, { upsert: true })
 
     reply({})
+
+    wallet = await wallets.findOne({ address: address })
+    if (!wallet) return debug('no such bitgo wallet', payload)
+
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+              $set: { balances: await runtime.wallet.balances(wallet) }
+            }
+    await wallets.update({ paymentId: wallet.paymentId }, state, { upsert: true })
   }
 },
 

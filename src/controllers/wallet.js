@@ -16,7 +16,7 @@ var v1 = {}
 v1.read =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var balances, result, wallet
+    var balances, result, state, wallet
     var amount = request.query.amount
     var balanceP = request.query.balance
     var currency = request.query.currency
@@ -33,11 +33,23 @@ v1.read =
              }
     if (balanceP || refreshP) {
       balances = await runtime.wallet.balances(wallet)
+
+      if (!underscore.equal(balances, wallet.balances)) {
+        state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+                  $set: { balances: balances }
+                }
+        await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+      }
+    } else {
+      balances = wallet.balances
+    }
+    if (balances) {
       underscore.extend(result, { satoshis: balances.confirmed,
                                   balance: (balances.confirmed / 1e8).toFixed(4),
                                   unconfirmed: (balances.unconfirmed / 1e8).toFixed(4)
                                  })
     }
+
     if ((amount) && (currency)) {
       underscore.extend(result, runtime.wallet.paymentInfo(wallet, amount, currency))
       if (refreshP) result.unsignedTx = await runtime.wallet.unsignedTx(wallet, amount, currency, balances.confirmed)
@@ -179,9 +191,9 @@ module.exports.initialize = async function (debug, runtime) {
   [ { category: runtime.db.get('wallets', debug),
       name: 'wallets',
       property: 'paymentId',
-      empty: { paymentId: '', address: '', provider: '', paymentStamp: 0, timestamp: bson.Timestamp.ZERO },
-      unique: [ { paymentId: 0 } ],
-      others: [ { address: 0 }, { provider: 1 }, { paymentStamp: 1 }, { timestamp: 1 } ]
+      empty: { paymentId: '', address: '', provider: '', balances: {}, paymentStamp: 0, timestamp: bson.Timestamp.ZERO },
+      unique: [ { paymentId: 0 }, { address: 0 } ],
+      others: [ { provider: 1 }, { paymentStamp: 1 }, { timestamp: 1 } ]
     },
     { category: runtime.db.get('viewings', debug),
       name: 'viewings',
