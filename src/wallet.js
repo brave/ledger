@@ -60,10 +60,18 @@ Wallet.prototype.balances = async function (info) {
   return await f.bind(this)(info)
 }
 
-Wallet.prototype.paymentInfo = function (info, amount, currency) {
-  var f = Wallet.providers[info.provider].paymentInfo
+Wallet.prototype.purchaseBTC = function (info, amount, currency) {
+  var f = Wallet.providers[info.provider].purchaseBTC
 
-  if (!f) f = Wallet.providers.coinbase.paymentInfo
+  if (!f) f = Wallet.providers.coinbase.purchaseBTC
+  if (!f) return {}
+  return f.bind(this)(info, amount, currency)
+}
+
+Wallet.prototype.recurringBTC = function (info, amount, currency) {
+  var f = Wallet.providers[info.provider].recurringBTC
+
+  if (!f) f = Wallet.providers.coinbase.recurringBTC
   if (!f) return {}
   return f.bind(this)(info, amount, currency)
 }
@@ -193,15 +201,25 @@ Wallet.providers.bitgo = {
 }
 
 Wallet.providers.coinbase = {
-  paymentInfo: function (info, amount, currency) {
+  purchaseBTC: function (info, amount, currency) {
     // TBD: for the moment...
     if (currency !== 'USD') throw new Error('currency ' + currency + ' payment not supported')
 
-    return ({ buyURL: `https://buy.coinbase.com` +
-                `?code=${this.config.coinbase.widgetCode}` +
+    return ({ buyURL: `https://buy.coinbase.com?crypto_currency=BTC` +
+                `&code=${this.config.coinbase.widgetCode}` +
                 `&amount=${amount}` +
-                `&address=${info.address}` +
-                `&crypto_currency=BTC`
+                `&address=${info.address}`
+            })
+  },
+
+  recurringBTC: function (info, amount, currency) {
+    // TBD: for the moment...
+    if (currency !== 'USD') throw new Error('currency ' + currency + ' payment not supported')
+
+    return ({ recurringURL: `https://www.coinbase.com/recurring_payments/new?type=send&repeat=monthly` +
+                `&amount=${amount}` +
+                `&currency=${currency}` +
+                `&to=${info.address}`
             })
   }
 }

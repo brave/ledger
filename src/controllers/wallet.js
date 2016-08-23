@@ -51,7 +51,8 @@ v1.read =
     }
 
     if ((amount) && (currency)) {
-      underscore.extend(result, runtime.wallet.paymentInfo(wallet, amount, currency))
+      underscore.extend(result, runtime.wallet.purchaseBTC(wallet, amount, currency))
+      underscore.extend(result, runtime.wallet.recurringBTC(wallet, amount, currency))
       if (refreshP) result.unsignedTx = await runtime.wallet.unsignedTx(wallet, amount, currency, balances.confirmed)
     }
 
@@ -76,8 +77,8 @@ v1.read =
       {
         balance: Joi.number().min(0).optional().description('the (confirmed) wallet balance in BTC'),
         unconfirmed: Joi.number().min(0).optional().description('the unconfirmed wallet balance in BTC'),
-        buyURL: Joi.string().uri({ scheme: /https?/ }).optional().description('the URL for payment interaction'),
-        buyURLExpires: Joi.number().min(0).optional().description('the expiration date of the payment URL'),
+        buyURL: Joi.string().uri({ scheme: /https?/ }).optional().description('the URL for an initial payment'),
+        recurringURL: Joi.string().uri({ scheme: /https?/ }).optional().description('the URL for recurring payments'),
         paymentStamp: Joi.number().min(0).required().description('timestamp of the last successful payment'),
         rates: Joi.object().optional().description('current exchange rates from BTC to various currencies'),
         satoshis: Joi.number().integer().min(0).optional().description('the wallet balance in satoshis'),
