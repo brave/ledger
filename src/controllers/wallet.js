@@ -60,7 +60,7 @@ v1.read =
   }
 },
 
-  description: 'Returns information about BTC wallet associated with the user',
+  description: 'Returns information about the BTC wallet associated with the user',
   tags: [ 'api' ],
 
   validate:
