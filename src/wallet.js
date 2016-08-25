@@ -147,7 +147,6 @@ Wallet.providers.bitgo = {
 // courtesy of https://stackoverflow.com/questions/33289726/combination-of-async-function-await-settimeout#33292942
     var timeout = function (msec) { return new Promise((resolve) => { setTimeout(resolve, msec) }) }
 
-    details = { fee: 0, address: this.config.bitgo.escrowAddress, satoshis: 100 }
     for (i = 0; i < 5; i++) {
       try {
         details = await this.bitgo.blockchain().getTransaction({ id: result.hash })
@@ -158,9 +157,16 @@ Wallet.providers.bitgo = {
         debug('getTransaction', { retry: i + 1, max: 5 })
       }
     }
+    underscore.extend(result, { fee: details.fee })
 
-    return underscore.extend(result,
-                            { fee: details.fee, address: details.entries[0].account, satoshis: details.entries[0].value })
+    for (i = details.outputs.length - 1; i >= 0; i--) {
+      if (details.outputs[i].account !== this.config.bitgo.escrowAddress) continue
+
+       underscore.extend(result, { address: details.outputs[i].account, satoshis: details.outputs[i].value })
+       break
+    }
+
+    return result
   },
 
   unsignedTx: async function (info, amount, currency, balance) {
