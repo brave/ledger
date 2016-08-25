@@ -162,8 +162,8 @@ Wallet.providers.bitgo = {
     for (i = details.outputs.length - 1; i >= 0; i--) {
       if (details.outputs[i].account !== this.config.bitgo.escrowAddress) continue
 
-       underscore.extend(result, { address: details.outputs[i].account, satoshis: details.outputs[i].value })
-       break
+      underscore.extend(result, { address: details.outputs[i].account, satoshis: details.outputs[i].value })
+      break
     }
 
     return result
@@ -211,6 +211,8 @@ Wallet.providers.coinbase = {
     // TBD: for the moment...
     if (currency !== 'USD') throw new Error('currency ' + currency + ' payment not supported')
 
+    amount += amount / 250
+    amount = Math.fixed(2)
     return ({ buyURL: `https://buy.coinbase.com?crypto_currency=BTC` +
                 `&code=${this.config.coinbase.widgetCode}` +
                 `&amount=${amount}` +
