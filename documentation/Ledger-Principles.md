@@ -65,7 +65,7 @@ The client is responsible for reconciling persona behavior with the Ledger.
 (However,
 Brave Software's advertising and accounting servers provide the usual checks for click fraud, etc.)
 
-The default `Bravery` setting for the client is `ad-replacement`.
+The default `Bravery` setting for the client is `ad-free`.
 If `ad-free` is selected by the user,
 then,
 depending on the configuration of the client:
