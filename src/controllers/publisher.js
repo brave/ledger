@@ -77,7 +77,8 @@ v1.identify =
     var url = request.query.url
 
     try {
-      result = ledgerPublisher.getPublisher(url)
+      result = ledgerPublisher.getPublisherProps(url)
+      if (result) result.publisher = ledgerPublisher.getPublisher(url)
 
       reply(result || boom.notFound())
     } catch (err) {
@@ -93,7 +94,7 @@ v1.identify =
     { query: { url: Joi.string().uri({ scheme: /https?/ }).required().description('the URL to parse') } },
 
   response:
-    { schema: Joi.string().optional().description('the publisher identity') }
+    { schema: Joi.object().optional().description('the publisher identity') }
 }
 
 module.exports.routes = [
