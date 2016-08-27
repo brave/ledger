@@ -121,7 +121,7 @@ v1.create =
     if (!registrar) return reply(boom.notFound('unknown registrar'))
 
     entry = await credentials.findOne({ uId: uId, registrarId: registrar.registrarId })
-    if (entry) return reply(boom.badData('credential exists: ' + uId))
+    if (entry) return reply(boom.badData(registrar.registrarType + ' credential exists: ' + uId))
 
     f = { persona:
             async function () {
