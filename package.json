@@ -1,6 +1,6 @@
 {
   "name": "ledger",
-  "version": "0.8.48",
+  "version": "0.8.49",
   "description": "A BTC micropayments system for users and publishers.",
   "main": "index.js",
   "scripts": {
@@ -42,12 +42,12 @@
     "inert": "^3.2.0",
     "joi": "^9.0.0-2",
     "ledger-balance": "^0.8.46",
-    "ledger-publisher": "^0.8.48",
+    "ledger-publisher": "^0.8.49",
     "moment": "^2.13.0",
     "mongodb": "1.4.39",
     "monk": "https://github.com/brave/monk.git",
     "monotonic-timestamp": "0.0.9",
-    "node-anonize2-relic-emscripten": "https://github.com/brave/node-anonize2-relic-emscripten.git",
+    "node-anonize2-relic": "https://github.com/brave/node-anonize2-relic.git",
     "node-uuid": "1.4.7",
     "newrelic": "1.23.1",
     "rsmq": "^0.7.0",
