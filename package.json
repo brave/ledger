@@ -48,6 +48,7 @@
     "monk": "https://github.com/brave/monk.git",
     "monotonic-timestamp": "0.0.9",
     "node-anonize2-relic": "https://github.com/brave/node-anonize2-relic.git",
+    "node-anonize2-relic-emscripten": "https://github.com/brave/node-anonize2-relic-emscripten.git",
     "node-uuid": "1.4.7",
     "newrelic": "1.23.1",
     "rsmq": "^0.7.0",

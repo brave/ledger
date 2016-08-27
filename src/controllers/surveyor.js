@@ -1,4 +1,4 @@
-var anonize = require('node-anonize2-relic-emscripten')
+var anonize = require('node-anonize2-relic')
 var boom = require('boom')
 var braveHapi = require('../brave-hapi')
 var braveJoi = require('../brave-joi')
