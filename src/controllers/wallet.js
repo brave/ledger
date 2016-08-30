@@ -127,7 +127,7 @@ v1.write =
     await wallets.update({ paymentId: paymentId }, state, { upsert: true })
 
     params = surveyor.payload.adFree
-    votes = Math.floor(((result.fee + result.satoshis) / params.satoshis) * params.votes)
+    votes = Math.round(((result.fee + result.satoshis) / params.satoshis) * params.votes)
     if (votes < 1) votes = 1
     fee = result.fee
 
