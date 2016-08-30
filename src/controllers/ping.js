@@ -27,7 +27,7 @@ v1.ping =
     { query: {} },
 
   response:
-    { schema: Joi.any().description('static properties of the server') }
+    { schema: Joi.object().keys().unknown(true).description('static properties of the server') }
 }
 
 module.exports.routes = [ braveHapi.routes.async().path('/v1/ping').config(v1.ping) ]
