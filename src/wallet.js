@@ -170,8 +170,7 @@ Wallet.providers.bitgo = {
   },
 
   unsignedTx: async function (info, amount, currency, balance) {
-    var i, satoshis, transaction, wallet
-    var drift = 50000
+    var i, minimum, satoshis, transaction, wallet
     var estimate = await this.bitgo.estimateFee({ numBlocks: 6 })
     var fee = Math.ceil(estimate.feePerKb / 2)
     var rate = Wallet.prototype.rates[currency.toUpperCase()]
@@ -179,9 +178,11 @@ Wallet.providers.bitgo = {
 
     if (!rate) throw new Error('no such currency: currency')
 
-    satoshis = Math.round((amount / rate) * 1e8)
-    debug('unsignedTx', { available: balance, desired: satoshis })
-    if (satoshis > (balance + drift)) return
+    satoshis = (amount / rate) * 1e8
+    minimum = Math.floor(satoshis * 0.90)
+    satoshis = Math.round(satoshis)
+    debug('unsignedTx', { balance: balance, desired: satoshis, minimum: minimum })
+    if (minimum > balance) return
 
     if (satoshis > balance) satoshis = balance
 
