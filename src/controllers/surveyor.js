@@ -16,7 +16,11 @@ var server = async function (request, reply, runtime) {
   var surveyorId = request.params.surveyorId
   var surveyors = runtime.db.get('surveyors', debug)
 
-  entry = await surveyors.findOne({ surveyorId: surveyorId })
+  if ((surveyorId === 'current') && (surveyorType === 'contribution')) {
+    entry = await surveyors.findOne({ surveyorType: surveyorType, active: true })
+  } else {
+    entry = await surveyors.findOne({ surveyorId: surveyorId })
+  }
   if (!entry) reply(boom.notFound('surveyor does not exist: ' + surveyorId))
   else if (entry.surveyorType !== surveyorType) reply(boom.badData('surveyorType mismatch for: ' + surveyorId))
   else {
@@ -74,14 +78,8 @@ v1.read =
 { handler: function (runtime) {
   return async function (request, reply) {
     var surveyor
-    var surveyorId = request.params.surveyorId
-    var surveyorType = request.params.surveyorType
 
-    if ((surveyorId === 'current') && (surveyorType === 'contribution')) {
-      surveyorType = request.params.surveyorType
-      surveyor = runtime.surveyors[surveyorType]
-      if (!surveyor) reply(boom.notFound('surveyor does not exist: ' + surveyorId))
-    } else surveyor = await server(request, reply, runtime)
+    surveyor = await server(request, reply, runtime)
     if (!surveyor) return
 
     reply(underscore.extend({ payload: surveyor.payload }, surveyor.publicInfo()))
@@ -171,15 +169,11 @@ v1.update =
   return async function (request, reply) {
     var state, surveyor, validity
     var debug = braveHapi.debug(module, request)
-    var surveyorId = request.params.surveyorId
     var surveyorType = request.params.surveyorType
     var payload = request.payload || {}
     var surveyors = runtime.db.get('surveyors', debug)
 
-    if ((surveyorId === 'current') && (surveyorType === 'contribution')) {
-      surveyor = runtime.surveyors[surveyorType]
-      if (!surveyor) reply(boom.notFound('surveyor does not exist: ' + surveyorId))
-    } else surveyor = await server(request, reply, runtime)
+    surveyor = await server(request, reply, runtime)
     if (!surveyor) return
 
     validity = validate(surveyorType, payload)
@@ -248,10 +242,7 @@ v1.phase1 =
     var uId = request.params.uId.toLowerCase()
     var credentials = runtime.db.get('credentials', debug)
 
-    if ((surveyorId === 'current') && (surveyorType === 'contribution')) {
-      surveyor = runtime.surveyors[surveyorType]
-      if (!surveyor) return reply(boom.notFound('surveyor does not exist: ' + surveyorType))
-    } else surveyor = await server(request, reply, runtime)
+    surveyor = await server(request, reply, runtime)
     if (!surveyor) return
 
     registrar = runtime.registrars[registrarType(surveyorType)]
@@ -400,11 +391,9 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
   registrar = runtime.registrars[registrarType(surveyorType)]
   if (!registrar) return
 
-  if (runtime.surveyors[surveyorType]) {
+  if (surveyorType === 'contribution') {
     state = { $set: { active: false } }
-
-    await surveyors.update({ surveyorId: runtime.surveyors[surveyorType].surveyorId }, state, { upsert: true })
-    runtime.surveyors[surveyorType] = undefined
+    await surveyors.update({ surveyorType: 'contribution', active: true }, state, { upsert: false })
   }
 
   surveyor = new anonize.Surveyor().initialize(registrar.publicInfo().registrarVK)
@@ -418,7 +407,6 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
   if (parentId) state.$set.parentId = parentId
   await surveyors.update({ surveyorId: surveyor.surveyorId }, state, { upsert: true })
 
-  runtime.surveyors[surveyorType] = surveyor
   if (surveyorType !== 'contribution') return surveyor
 
   await runtime.queue.send(debug, 'surveyor-report',
@@ -428,24 +416,21 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
   return surveyor
 }
 
-var daily = function (debug, runtime) {
-  var midnight, tomorrow
+var daily = async function (debug, runtime) {
+  var entries, midnight, tomorrow
   var now = underscore.now()
+  var surveyorType = 'contribution'
+  var surveyors = runtime.db.get('surveyors', debug)
 
   debug('daily', 'running')
 
   midnight = new Date(now)
   midnight.setHours(0, 0, 0, 0)
   midnight = Math.floor(midnight.getTime() / 1000)
-  underscore.keys(runtime.surveyors).forEach(async function (surveyorType) {
-    var entry, payload, surveyor, validity
-    var surveyorId = runtime.surveyors[surveyorType].surveyorId
-    var surveyors = runtime.db.get('surveyors', debug)
 
-    if (surveyorType !== 'contribution') return
-
-    entry = await surveyors.findOne({ surveyorId: surveyorId })
-    if (!entry) return debug('daily', 'no entry for surveyorId=' + surveyorId)
+  entries = await surveyors.find({ surveyorType: surveyorType, active: true }, { limit: 100, sort: { timestamp: -1 } })
+  entries.forEach(async function (entry) {
+    var payload, surveyor, validity
 
     if (entry.timestamp.high_ >= midnight) return
 
@@ -526,8 +511,6 @@ module.exports.initialize = async function (debug, runtime) {
   await runtime.queue.create('surveyor-report')
   await runtime.queue.create('voting-report')
 
-  runtime.surveyors = []
-
   services = configurations.split(',')
   for (i = services.length - 1; i >= 0; i--) {
     service = services[i].split(':')
@@ -539,8 +522,6 @@ module.exports.initialize = async function (debug, runtime) {
       surveyor.surveyorId = entry.surveyorId
       surveyor.surveyorType = surveyorType
       surveyor.payload = entry.payload
-
-      runtime.surveyors[surveyorType] = surveyor
     }
   }
 // NB: may be needed if the provision algorithm changes!
