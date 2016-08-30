@@ -212,8 +212,6 @@ Wallet.providers.coinbase = {
     // TBD: for the moment...
     if (currency !== 'USD') throw new Error('currency ' + currency + ' payment not supported')
 
-    amount += amount / 250
-    amount = amount.toFixed(2)
     return ({ buyURL: `https://buy.coinbase.com?crypto_currency=BTC` +
                 `&code=${this.config.coinbase.widgetCode}` +
                 `&amount=${amount}` +
