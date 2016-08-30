@@ -41,7 +41,7 @@ Wallet.prototype.create = async function (prefix, label, keychains) {
                            type: 'velocityLimit',
                            condition: { type: 'velocity',
                                         amount: 7000000,
-                                        timeWindow: 5 * 86400,
+                                        timeWindow: 30 * 86400,
                                         groupTags: [],
                                         excludeTags: []
                                       },
