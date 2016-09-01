@@ -67,6 +67,40 @@ v1.create =
 }
 
 /*
+   DELETE /v1/publisher/ruleset
+ */
+
+v1.delete =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var debug = braveHapi.debug(module, request)
+    var rulesets = runtime.db.get('rulesets', debug)
+
+    await rulesets.remove({ rulesetId: rulesetId })
+
+    runtime.ruleset = ledgerPublisher.rules
+
+    reply({})
+  }
+},
+
+  auth:
+    { strategy: 'session',
+      scope: [ 'ledger' ],
+      mode: 'required'
+    },
+
+  description: 'Resets the publisher identity ruleset',
+  tags: [ 'api' ],
+
+  validate:
+    { query: {} },
+
+  response:
+    { schema: Joi.any() }
+}
+
+/*
    GET /v1/publisher/identity?url=...
  */
 
@@ -100,6 +134,7 @@ v1.identify =
 module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/publisher/ruleset').config(v1.read),
   braveHapi.routes.async().post().path('/v1/publisher/ruleset').config(v1.create),
+  braveHapi.routes.async().delete().path('/v1/publisher/ruleset').config(v1.delete),
   braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identify)
 ]
 
