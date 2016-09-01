@@ -419,6 +419,13 @@ These HD wallets require 2 of 3 signatures in order to perform funds transfer.
 When a client wallet is created,
 BitGo (the Bitcoin Wallet Provider) keeps one keypair,
 and the client keeps one keypair (both for signing and for recovery purposes).
+The third keypair is generated offline for use with the ledger;
+however,
+the `xprv` value is destroyed,
+and the ledger is given only the `xpub` value.
+(Independently,
+the BitGo service requires an API key from Brave Software in order to process requests.)
+
 Among other things,
 this gives Brave Software the ability to check the balance independently from the client,
 but not make withdrawals.
