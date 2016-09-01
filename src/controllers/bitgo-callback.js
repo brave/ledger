@@ -47,10 +47,10 @@ v1.sink =
   tags: [ 'api' ],
 
   validate:
-    { payload: Joi.any() },
+    { payload: Joi.object().keys().unknown(true) },
 
   response:
-    { schema: Joi.any() }
+    { schema: Joi.object().length(0) }
 }
 
 module.exports.routes = [ braveHapi.routes.async().post().path('/callbacks/bitgo/sink').config(v1.sink) ]

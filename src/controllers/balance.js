@@ -62,7 +62,7 @@ v1.create =
     { payload: ledgerBalance.schema },
 
   response:
-    { schema: Joi.any() }
+    { schema: Joi.object().length(0) }
 }
 
 module.exports.routes = [

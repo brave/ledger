@@ -63,7 +63,7 @@ v1.create =
     { payload: ledgerPublisher.schema },
 
   response:
-    { schema: Joi.any() }
+    { schema: Joi.object().length(0) }
 }
 
 /*
@@ -97,7 +97,7 @@ v1.delete =
     { query: {} },
 
   response:
-    { schema: Joi.any() }
+    { schema: Joi.object().length(0) }
 }
 
 /*
