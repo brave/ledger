@@ -196,7 +196,8 @@ var main = async function () {
       address: server.info.address,
       port: runtime.config.port,
       version: server.version,
-      env: underscore.pick(process.env, [ 'BITGO_ENVIRONMENT', 'DEBUG', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ])
+      env: underscore.pick(process.env,
+                           [ 'BITGO_CUSTOM_ROOT_URI', 'BITGO_ENVIRONMENT', 'DEBUG', 'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ])
     })
 
     runtime.npminfo = underscore.pick(npminfo, 'name', 'version', 'description', 'author', 'license', 'bugs', 'homepage')
