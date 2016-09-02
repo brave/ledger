@@ -39,6 +39,8 @@ v1.read =
                   $set: { balances: balances }
                 }
         await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+
+        await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
       }
     } else {
       balances = wallet.balances
@@ -205,5 +207,6 @@ module.exports.initialize = async function (debug, runtime) {
     }
   ])
 
+  await runtime.queue.create('wallet-report')
   await runtime.queue.create('contribution-report')
 }

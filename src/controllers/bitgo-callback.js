@@ -1,6 +1,7 @@
 var braveHapi = require('../brave-hapi')
 var bson = require('bson')
 var Joi = require('joi')
+var underscore = require('underscore')
 var uuid = require('node-uuid')
 
 var v1 = {}
@@ -40,6 +41,8 @@ v1.sink =
               $set: { balances: await runtime.wallet.balances(wallet) }
             }
     await wallets.update({ paymentId: wallet.paymentId }, state, { upsert: true })
+
+    await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: wallet.paymentId }, state.$set))
   }
 },
 
@@ -65,4 +68,6 @@ module.exports.initialize = async function (debug, runtime) {
       others: [ { provider: 1 }, { timestamp: 1 } ]
     }
   ])
+
+  await runtime.queue.create('wallet-report')
 }
