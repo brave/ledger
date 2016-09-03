@@ -33,6 +33,8 @@ v1.read =
              }
     if (balanceP || refreshP) {
       balances = await runtime.wallet.balances(wallet)
+// temporary to help eyeshade synchronization
+      await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
 
       if (!underscore.isEqual(balances, wallet.balances)) {
         state = { $currentDate: { timestamp: { $type: 'timestamp' } },
