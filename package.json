@@ -1,6 +1,6 @@
 {
   "name": "brave-ledger",
-  "version": "0.8.63",
+  "version": "0.8.64",
   "description": "A BTC micropayments system for users and publishers.",
   "main": "index.js",
   "scripts": {
@@ -41,8 +41,8 @@
     "hapi-swagger": "^6.1.0",
     "inert": "^3.2.0",
     "joi": "^9.0.0-2",
-    "ledger-balance": "^0.8.46",
-    "ledger-publisher": "^0.8.59",
+    "ledger-balance": "^0.8.60",
+    "ledger-publisher": "^0.8.60",
     "moment": "^2.13.0",
     "mongodb": "1.4.39",
     "monk": "https://github.com/brave/monk.git",
