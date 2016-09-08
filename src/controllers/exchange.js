@@ -33,6 +33,12 @@ ledgerExchange = {
       buttonURL: 'https://www.bitx.co/'
     },
 
+    IN: {
+      titleText: 'Create an account on Coinsecure',
+      buttonText: 'Create',
+      buttonURL: 'https://coinsecure.in/'
+    },
+
     TW: {
       titleText: 'Create an account on 247exchange',
       buttonText: 'Create',
