@@ -37,13 +37,15 @@ ledgerExchange = {
     TW: {
       exchangeName: '247exchange',
       exchangeURL: 'https://www.247exchange.com/'
-    },
+    }
 
+/*
     US: {
       exchangeName: 'Coinbase',
       exchangeURL: 'https://www.coinbase.com/',
       bitcoinURL: 'https://www.coinbase.com/handler?u=%s'
     }
+ */
   },
 
   schema:
