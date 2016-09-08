@@ -10,58 +10,47 @@ var rulesetId = 3
 ledgerExchange = {
   providers: {
     AU: {
-      titleText: 'Create an account on CoinJar',
-      buttonText: 'Create',
-      buttonURL: 'https://www.coinjar.com/'
+      exchangeName: 'CoinJar',
+      exchangeURL: 'https://www.coinjar.com/'
     },
 
     BR: {
-      titleText: 'Create an account on BitcoinToYou',
-      buttonText: 'Create',
-      buttonURL: 'https://www.bitcointoyou.com/'
+      exchangeName: 'BitcoinToYou',
+      exchangeURL: 'https://www.bitcointoyou.com/'
     },
 
     CA: {
-      titleText: 'Create an account on QuadrigaCX',
-      buttonText: 'Create',
-      buttonURL: 'https://www.quadrigacx.com/'
+      exchangeName: 'QuadrigaCX',
+      exchangeURL: 'https://www.quadrigacx.com/'
     },
 
     ID: {
-      titleText: 'Create an account on BitX',
-      buttonText: 'Create',
-      buttonURL: 'https://www.bitx.co/'
+      exchangeName: 'BitX',
+      exchangeURL: 'https://www.bitx.co/'
     },
 
     IN: {
-      titleText: 'Create an account on Coinsecure',
-      buttonText: 'Create',
-      buttonURL: 'https://coinsecure.in/'
+      exchangeName: 'Coinsecure',
+      exchangeURL: 'https://coinsecure.in/'
     },
 
     TW: {
-      titleText: 'Create an account on 247exchange',
-      buttonText: 'Create',
-      buttonURL: 'https://www.247exchange.com/'
+      exchangeName: '247exchange',
+      exchangeURL: 'https://www.247exchange.com/'
     },
 
-/*
     US: {
-      titleText: 'Use your debit or credit card',
-      buttonText: 'Buy with Coinbase',
-      buttonURL: 'https://www.coinbase.com/',
+      exchangeName: 'Coinbase',
+      exchangeURL: 'https://www.coinbase.com/',
       bitcoinURL: 'https://www.coinbase.com/handler?u=%s'
     }
- */
   },
 
   schema:
     Joi.object().pattern(/^[A-Z][A-Z]/,
       Joi.object().keys({
-        titleText: Joi.string().required().description('the text above the image'),
-        imageURL: Joi.string().uri({ scheme: [ /https?/, /data/ ] }).optional().description('the image'),
-        buttonText: Joi.string().required().description('the text in the button below the image'),
-        buttonURL: Joi.string().uri({ scheme: [ /https?/ ] }).required().description('the buy button'),
+        exchangeName: Joi.string().required().description('the text above the image'),
+        exchangeURL: Joi.string().uri({ scheme: [ /https?/ ] }).required().description('the buy button'),
         bitcoinURL: Joi.string().uri({ scheme: [ /https?/ ] }).optional().description('add link handler to your browser')
       })
     )
@@ -88,10 +77,7 @@ var cubits = [ 'AT',
                'UA',
                'ZA' ]
 cubits.forEach((iso3166) => {
-  ledgerExchange.providers[iso3166] = { titleText: 'Create an account on Cubits',
-                                        buttonText: 'Create',
-                                        buttonURL: 'https://cubits.com/'
-                                      }
+  ledgerExchange.providers[iso3166] = { exchangeName: 'Cubits', exchangeURL: 'https://cubits.com/' }
 })
 
 /*
