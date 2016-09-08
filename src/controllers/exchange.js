@@ -45,12 +45,14 @@ ledgerExchange = {
       buttonURL: 'https://www.247exchange.com/'
     },
 
+/*
     US: {
       titleText: 'Use your debit or credit card',
       buttonText: 'Buy with Coinbase',
       buttonURL: 'https://www.coinbase.com/',
       bitcoinURL: 'https://www.coinbase.com/handler?u=%s'
     }
+ */
   },
 
   schema:
