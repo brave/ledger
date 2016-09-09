@@ -524,9 +524,12 @@ module.exports.initialize = async function (debug, runtime) {
       surveyor.payload = entry.payload
     }
   }
-// NB: may be needed if the provision algorithm changes!
-  setTimeout(function () { provision(debug, runtime) }, 5 * 1000)
 
-  if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO
-  setTimeout(function () { daily(debug, runtime) }, 5 * 1000)
+  // NB: should probably do this in a seperate job
+  if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO)) {
+    // NB: may be needed if the provision algorithm changes!
+    setTimeout(function () { provision(debug, runtime) }, 5 * 1000)
+
+    setTimeout(function () { daily(debug, runtime) }, 5 * 1000)
+  }
 }
