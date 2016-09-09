@@ -527,5 +527,6 @@ module.exports.initialize = async function (debug, runtime) {
 // NB: may be needed if the provision algorithm changes!
   setTimeout(function () { provision(debug, runtime) }, 5 * 1000)
 
+  if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO
   setTimeout(function () { daily(debug, runtime) }, 5 * 1000)
 }
