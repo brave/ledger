@@ -514,7 +514,7 @@ var provision = async function (debug, runtime) {
 
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/surveyor/{surveyorType}/{surveyorId}').config(v1.read),
-  braveHapi.routes.async().provision().path('/v1/surveyor/{surveyorType}').config(v1.provision),
+  braveHapi.routes.async().path('/v1/surveyor/{surveyorType}').config(v1.provision),
   braveHapi.routes.async().post().path('/v1/surveyor/{surveyorType}').config(v1.create),
   braveHapi.routes.async().patch().path('/v1/surveyor/{surveyorType}/{surveyorId}').config(v1.update),
   braveHapi.routes.async().path('/v1/surveyor/{surveyorType}/{surveyorId}/{uId}').config(v1.phase1),
