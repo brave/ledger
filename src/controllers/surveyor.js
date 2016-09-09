@@ -108,6 +108,40 @@ v1.read =
 }
 
 /*
+   GET /v1/surveyor/{surveyorType}
+ */
+
+v1.provision =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var debug = braveHapi.debug(module, request)
+    var surveyorType = request.params.surveyorType
+
+    if (surveyorType === 'contribution') provision(debug, runtime)
+
+    reply({})
+  }
+},
+
+  auth:
+    { strategy: 'session',
+      scope: [ 'ledger' ],
+      mode: 'required'
+    },
+
+  description: 'Creates an new surveyor',
+  tags: [ 'api' ],
+
+  validate:
+    { params:
+      { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor') }
+    },
+
+  response:
+    { schema: Joi.object().length(0) }
+}
+
+/*
    POST /v1/surveyor/{surveyorType}
  */
 
@@ -480,6 +514,7 @@ var provision = async function (debug, runtime) {
 
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/surveyor/{surveyorType}/{surveyorId}').config(v1.read),
+  braveHapi.routes.async().provision().path('/v1/surveyor/{surveyorType}').config(v1.provision),
   braveHapi.routes.async().post().path('/v1/surveyor/{surveyorType}').config(v1.create),
   braveHapi.routes.async().patch().path('/v1/surveyor/{surveyorType}/{surveyorId}').config(v1.update),
   braveHapi.routes.async().path('/v1/surveyor/{surveyorType}/{surveyorId}/{uId}').config(v1.phase1),
@@ -525,6 +560,7 @@ module.exports.initialize = async function (debug, runtime) {
     }
   }
 
+/*
   // NB: should probably do this in a seperate job
   if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO === 'web.1')) {
     // NB: may be needed if the provision algorithm changes!
@@ -532,4 +568,5 @@ module.exports.initialize = async function (debug, runtime) {
 
     setTimeout(function () { daily(debug, runtime) }, 5 * 1000)
   }
+ */
 }

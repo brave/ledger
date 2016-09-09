@@ -30,8 +30,8 @@ ledgerExchange = {
     },
 
     IN: {
-      exchangeName: 'Coinsecure',
-      exchangeURL: 'https://coinsecure.in/'
+      exchangeName: 'Zebpay',
+      exchangeURL: 'https://www.zebpay.com/'
     },
 
     TW: {
