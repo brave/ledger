@@ -399,7 +399,7 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
   surveyor.payload = payload
 
   state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-            $set: underscore.extend({ surveyorType: surveyorType, active: surveyorType !== 'contrnbution', available: true,
+            $set: underscore.extend({ surveyorType: surveyorType, active: surveyorType !== 'contribution', available: true,
                                       payload: payload }, surveyor)
           }
   if (parentId) state.$set.parentId = parentId
@@ -485,10 +485,11 @@ if (entries.length > 10) return
       if (!surveyor) return debug('surveyor', 'unable to create ' + count + ' voting surveyors')
 
       entry.surveyors.push(surveyor.surveyorId)
-      await surveyors.update({ surveyorId: entry.surveyorId }, { $set: { surveyors: entry.surveyors } }, { upsert: true })
 
       count--
     }
+
+    await surveyors.update({ surveyorId: entry.surveyorId }, { $set: { surveyors: entry.surveyors } }, { upsert: true })
   })
 }
 
