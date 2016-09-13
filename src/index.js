@@ -111,7 +111,7 @@ server.ext('onPreResponse', function (request, reply) {
   var response = request.response
 
   if ((!response.isBoom) || (response.output.statusCode !== 401)) {
-    response.header('Cache-Control', 'private')
+    if (typeof response.header === 'function') response.header('Cache-Control', 'private')
     return reply.continue()
   }
 
