@@ -116,10 +116,8 @@ server.ext('onPreResponse', function (request, reply) {
 
   try {
     if ((!response.isBoom) || (response.output.statusCode !== 401)) {
-      if(response.header && typeof response.header === 'function') {
-        response.header('Cache-Control', 'private')
-        return reply.continue()
-      }
+      if (typeof response.header === 'function') response.header('Cache-Control', 'private')
+      return reply.continue()
     }
   } catch (exc) {
     debug('exception in onPreResponse', {'exception': exc})
