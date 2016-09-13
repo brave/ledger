@@ -78,11 +78,15 @@ v1.read =
 { handler: function (runtime) {
   return async function (request, reply) {
     var surveyor
+    var debug = braveHapi.debug(module, request)
+    var surveyorType = request.params.surveyorType
 
     surveyor = await server(request, reply, runtime)
     if (!surveyor) return
 
     reply(underscore.extend({ payload: surveyor.payload }, surveyor.publicInfo()))
+
+    if (surveyorType === 'contribution') provision(debug, runtime, surveyor.surveyorId)
   }
 },
 
@@ -108,40 +112,6 @@ v1.read =
 }
 
 /*
-   GET /v1/surveyor/{surveyorType}
- */
-
-v1.provision =
-{ handler: function (runtime) {
-  return async function (request, reply) {
-    var debug = braveHapi.debug(module, request)
-    var surveyorType = request.params.surveyorType
-
-    if (surveyorType === 'contribution') provision(debug, runtime)
-
-    reply({})
-  }
-},
-
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
-
-  description: 'Creates an new surveyor',
-  tags: [ 'api' ],
-
-  validate:
-    { params:
-      { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor') }
-    },
-
-  response:
-    { schema: Joi.object().length(0) }
-}
-
-/*
    POST /v1/surveyor/{surveyorType}
  */
 
@@ -163,8 +133,6 @@ v1.create =
     if (!surveyor) return reply(boom.notFound('invalid surveyorType: ' + surveyorType))
 
     reply(underscore.extend({ payload: payload }, surveyor.publicInfo()))
-
-    if (surveyorType === 'contribution') provision(debug, runtime)
   }
 },
 
@@ -174,7 +142,7 @@ v1.create =
       mode: 'required'
     },
 
-  description: 'Creates an new surveyor',
+  description: 'Creates a new surveyor',
   tags: [ 'api' ],
 
   validate:
@@ -230,7 +198,7 @@ v1.update =
     surveyor.payload = payload
     reply(underscore.extend({ payload: payload }, surveyor.publicInfo()))
 
-    if (surveyorType === 'contribution') provision(debug, runtime)
+    if (surveyorType === 'contribution') provision(debug, runtime, surveyor.surveyorId)
   }
 },
 
@@ -425,23 +393,27 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
   registrar = runtime.registrars[registrarType(surveyorType)]
   if (!registrar) return
 
-  if (surveyorType === 'contribution') {
-    state = { $set: { active: false } }
-    await surveyors.update({ surveyorType: 'contribution', active: true }, state, { upsert: false })
-  }
-
   surveyor = new anonize.Surveyor().initialize(registrar.publicInfo().registrarVK)
   surveyor.surveyorId = surveyor.parameters.surveyorId
   surveyor.surveyorType = surveyorType
   surveyor.payload = payload
 
   state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-            $set: underscore.extend({ surveyorType: surveyorType, active: true, available: true, payload: payload }, surveyor)
+            $set: underscore.extend({ surveyorType: surveyorType, active: surveyorType !== 'contrnbution', available: true,
+                                      payload: payload }, surveyor)
           }
   if (parentId) state.$set.parentId = parentId
   await surveyors.update({ surveyorId: surveyor.surveyorId }, state, { upsert: true })
 
   if (surveyorType !== 'contribution') return surveyor
+
+  provision(debug, runtime, surveyor.surveyorId)
+
+  state = { $set: { active: false } }
+  await surveyors.update({ surveyorType: 'contribution', active: true }, state, { upsert: false, multi: true })
+
+  state = { $set: { active: true } }
+  await surveyors.update({ surveyorId: surveyor.surveyorId }, state, { upsert: false })
 
   await runtime.queue.send(debug, 'surveyor-report',
                            underscore.extend({ surveyorId: surveyor.surveyorId, surveyorType: surveyorType },
@@ -478,7 +450,6 @@ var daily = async function (debug, runtime) {
     if (!surveyor) return debug('daily', 'unable to create surveyorType=' + surveyorType)
 
     debug('daily', 'created ' + surveyorType + ' surveyorID=' + surveyor.surveyorId)
-    provision(debug, runtime)
   })
 
   tomorrow = new Date(now)
@@ -487,16 +458,25 @@ var daily = async function (debug, runtime) {
   debug('daily', 'running again ' + moment(tomorrow).fromNow())
 }
 
-var provision = async function (debug, runtime) {
-  var entries
+var provision = async function (debug, runtime, surveyorId) {
+  var entries, entry
   var surveyors = runtime.db.get('surveyors', debug)
 
-  entries = await surveyors.find({ surveyorType: 'contribution', available: true }, { limit: 100, sort: { timestamp: -1 } })
+console.log('provision ' + surveyorId)
+  if (surveyorId) {
+    entries = []
+    entry = await surveyors.findOne({ surveyorId: surveyorId })
+    if (entry) entries.push(entry)
+  } else {
+    entries = await surveyors.find({ surveyorType: 'contribution', available: true }, { limit: 1000, sort: { timestamp: -1 } })
+  }
+console.log('entries=' + entries.length)
+if (entries.length > 10) return
   entries.forEach(async function (entry) {
     var count, surveyor
 
     if (!entry.surveyors) entry.surveyors = []
-    count = (entry.payload.adFree.votes * 5) - entry.surveyors.length
+    count = (entry.payload.adFree.votes * 4) - entry.surveyors.length
     if (count < 1) return
 
     debug('surveyor', 'creating ' + count + ' voting surveyors for ' + entry.surveyorId)
@@ -514,7 +494,6 @@ var provision = async function (debug, runtime) {
 
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/surveyor/{surveyorType}/{surveyorId}').config(v1.read),
-  braveHapi.routes.async().path('/v1/surveyor/{surveyorType}').config(v1.provision),
   braveHapi.routes.async().post().path('/v1/surveyor/{surveyorType}').config(v1.create),
   braveHapi.routes.async().patch().path('/v1/surveyor/{surveyorType}/{surveyorId}').config(v1.update),
   braveHapi.routes.async().path('/v1/surveyor/{surveyorType}/{surveyorId}/{uId}').config(v1.phase1),
@@ -557,15 +536,16 @@ module.exports.initialize = async function (debug, runtime) {
       surveyor.surveyorId = entry.surveyorId
       surveyor.surveyorType = surveyorType
       surveyor.payload = entry.payload
+
+      if ((surveyorType === 'contribution') ||
+            ((typeof process.env.DYNO !== 'undefined') && (process.env.DYNO !== 'web.1'))) continue
+
+      setTimeout(function () { provision(debug, runtime, surveyor.surveyorId) }, 5 * 1000)
     }
   }
 
 /*
-  // NB: should probably do this in a seperate job
   if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO === 'web.1')) {
-    // NB: may be needed if the provision algorithm changes!
-    setTimeout(function () { provision(debug, runtime) }, 5 * 1000)
-
     setTimeout(function () { daily(debug, runtime) }, 5 * 1000)
   }
  */

@@ -34,10 +34,25 @@ ledgerExchange = {
       exchangeURL: 'https://www.zebpay.com/'
     },
 
+    MY: {
+      exchangeName: 'BitX',
+      exchangeURL: 'https://www.bitx.co/'
+    },
+
+    NG: {
+      exchangeName: 'BitX',
+      exchangeURL: 'https://www.bitx.co/'
+    },
+
+    SG: {
+      exchangeName: 'BitX',
+      exchangeURL: 'https://www.bitx.co/'
+    },
+
     TW: {
       exchangeName: '247exchange',
       exchangeURL: 'https://www.247exchange.com/'
-    }
+    },
 
 /*
     US: {
@@ -46,6 +61,11 @@ ledgerExchange = {
       bitcoinURL: 'https://www.coinbase.com/handler?u=%s'
     }
  */
+
+    ZA: {
+      exchangeName: 'BitX',
+      exchangeURL: 'https://www.bitx.co/'
+    }
   },
 
   schema:
