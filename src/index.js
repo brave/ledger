@@ -108,7 +108,12 @@ server.ext('onRequest', function (request, reply) {
 })
 
 server.ext('onPreResponse', function (request, reply) {
-  if ((!request.response.isBoom) || (request.response.output.statusCode !== 401)) return reply.continue()
+  var response = request.response
+
+  if ((!response.isBoom) || (response.output.statusCode !== 401)) {
+    response.header('Cache-Control', 'private')
+    return reply.continue()
+  }
 
   request.auth.session.clear()
   reply.redirect('/v1/login')
