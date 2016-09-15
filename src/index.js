@@ -170,6 +170,7 @@ var main = async function () {
 
   server.route(routing)
   server.route({ method: 'GET', path: '/favicon.ico', handler: { file: './documentation/favicon.ico' } })
+  server.route({ method: 'GET', path: '/robots.txt', handler: { file: './documentation/robots.txt' } })
 
   server.start((err) => {
     var children = {}
