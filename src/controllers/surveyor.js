@@ -462,7 +462,6 @@ var provision = async function (debug, runtime, surveyorId) {
   var entries, entry
   var surveyors = runtime.db.get('surveyors', debug)
 
-console.log('provision ' + surveyorId)
   if (surveyorId) {
     entries = []
     entry = await surveyors.findOne({ surveyorId: surveyorId })
@@ -470,8 +469,6 @@ console.log('provision ' + surveyorId)
   } else {
     entries = await surveyors.find({ surveyorType: 'contribution', available: true }, { limit: 1000, sort: { timestamp: -1 } })
   }
-console.log('entries=' + entries.length)
-if (entries.length > 10) return
   entries.forEach(async function (entry) {
     var count, surveyor
 

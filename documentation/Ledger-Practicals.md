@@ -196,7 +196,7 @@ The contribution amount is found in the contribution surveyor's `payload` -- thi
 On success,
 the client makes the `GET /v1/wallet/{paymentId}` request to see if the its wallet has sufficient funds,
 and,
-if so, to receive an unsigned transaction to effect funds transfer from the wallet to an escrow account:
+if so, to receive an unsigned transaction to effect funds transfer from the wallet to a settlement account:
 
     <<< GET /v1/wallet/e43bc29a-7048-486c-b75b-6c4970b4ce2a?refresh=true&amount=5&currency=USD
     <<< content-type: application/json; charset=utf-8
@@ -225,7 +225,7 @@ Bitcoin Wallet Provisioning server.
 
 Once the client determines that its wallet has sufficient funds,
 the client signs the trasnsaction and makes the `PUT /v1/wallet/{paymentId}` request to have the appropriate amount transfered
-to the escrow account with this payload:
+to the settlement account with this payload:
 
     <<< PUT /v1/wallet/e43bc29a-7048-486c-b75b-6c4970b4ce2a
     <<< content-type: application/json; charset=utf-8
@@ -438,14 +438,14 @@ A client wallet is limited as to its 30-day velocity.
 If a client loses the key,
 the user employs the recovery file to provide information to the ledger to transfer funds to a new client wallet.
 
-### Brave Escrow Wallets
+### Brave Settlement Wallets
 These wallets are "locked-down" to permit transfers only to other Brave wallets.
 In turn,
 these wallets,
 that are rotated frequently, are used to transfer into publisher and persona wallets.
 
 When created,
-escrow wallets have their backup key sent to a KRS.
+settlement wallets have their backup key sent to a KRS.
 
 ## Acknowledgements
 Many helpful comments have dramatically increased the simplicity, readability and correctness of this specification.
