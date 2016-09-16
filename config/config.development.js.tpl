@@ -6,17 +6,17 @@ module.exports =
   { rsmq                : process.env.REDIS_URL || 'localhost:6379' }
 , wallet                :
   { bitgo               :
-    { accessToken       : process.env.BITGO_TOKEN || '...'
-    , enterpriseId      : process.env.BITGO_ENTERPRISE_ID || '...'
-    , environment       : process.env.BITGO_ENVIRONMENT || '...'
-    , settlementAddress : process.env.BITGO_ESCROW_ADDRESS || '...'
-    , unspendableXpub   : process.env.BITGO_UNSPENDABLE_XPUB || '...'
+    { accessToken       : process.env.BITGO_TOKEN
+    , enterpriseId      : process.env.BITGO_ENTERPRISE_ID
+    , environment       : process.env.BITGO_ENVIRONMENT
+    , settlementAddress : process.env.BITGO_SETTLEMENT_ADDRESS
+    , unspendableXpub   : process.env.BITGO_UNSPENDABLE_XPUB
     }
   , coinbase            :
-    { widgetCode        : process.env.COINBASE_WIDGET_CODE || '...' }
+    { widgetCode        : process.env.COINBASE_WIDGET_CODE }
   }
 , login                 :
-  { organization        : '...'
+  { organization        : ''
   , world               : '/documentation'
   , bye                 : 'https://example.com'
   , clientId            : process.env.GITHUB_CLIENT_ID
