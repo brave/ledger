@@ -160,7 +160,7 @@ Wallet.providers.bitgo = {
     underscore.extend(result, { fee: details.fee })
 
     for (i = details.outputs.length - 1; i >= 0; i--) {
-      if (details.outputs[i].account !== this.config.bitgo.escrowAddress) continue
+      if (details.outputs[i].account !== this.config.bitgo.settlementAddress) continue
 
       underscore.extend(result, { address: details.outputs[i].account, satoshis: details.outputs[i].value })
       break
@@ -188,7 +188,7 @@ Wallet.providers.bitgo = {
 
     wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: info.address })
     for (i = 0; i < 2; i++) {
-      recipients[this.config.bitgo.escrowAddress] = desired - fee
+      recipients[this.config.bitgo.settlementAddress] = desired - fee
 
       try {
         transaction = await wallet.createTransaction({ recipients: recipients, feeRate: estimate.feePerKb })
