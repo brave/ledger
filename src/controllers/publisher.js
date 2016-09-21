@@ -196,4 +196,18 @@ module.exports.initialize = async function (debug, runtime) {
   entry = await rulesets.findOne({ rulesetId: rulesetId })
   validity = Joi.validate(entry ? entry.ruleset : ledgerPublisher.ruleset, ledgerPublisher.schema)
   if (validity.error) throw new Error(validity.error)
+
+  ledgerPublisher.getRules(function (err, rules) {
+    var validity
+
+    if (err) runtime.newrelic.noticeError(err, { ledgerPublisher: 'getRules' })
+    if ((!rules) || (underscore.isEqual(ledgerPublisher.ruleset, rules))) return
+
+    validity = Joi.validate(rules, ledgerPublisher.schema)
+    console.log('validity.error=' + JSON.stringify(validity.error, null, 2))
+    if (validity.error) return runtime.newrelic.noticeError(new Error(validity.error), { ledgerPublisher: 'getRules' })
+
+    ledgerPublisher.ruleset = rules
+    console.log('done')
+  })
 }
