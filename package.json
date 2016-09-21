@@ -1,6 +1,6 @@
 {
   "name": "brave-ledger",
-  "version": "0.8.73",
+  "version": "0.8.74",
   "description": "A BTC micropayments system for users and publishers.",
   "main": "index.js",
   "scripts": {

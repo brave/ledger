@@ -19,7 +19,7 @@ var rulesetEntry = async function (request, runtime) {
   if ((!entry) || (entry.version.indexOf(version) !== 0)) {
     if (entry) rulesets.remove({ rulesetId: rulesetId })
 
-    entry = { rules: ledgerPublisher.ruleset, version: version }
+    entry = { ruleset: ledgerPublisher.ruleset, version: version }
   }
 
   return entry
@@ -61,7 +61,7 @@ v1.create =
     var rulesets = runtime.db.get('rulesets', debug)
 
     state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { rules: request.payload, version: version, type: 'publisher/ruleset' }
+              $set: { ruleset: request.payload, version: version, type: 'publisher/ruleset' }
             }
     await rulesets.update({ rulesetId: rulesetId }, state, { upsert: true })
 
