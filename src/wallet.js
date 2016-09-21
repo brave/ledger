@@ -3,7 +3,7 @@ var debug = new (require('sdebug'))('wallet')
 var Joi = require('joi')
 var underscore = require('underscore')
 
-var Wallet = function (config) {
+var Wallet = function (config, runtime) {
   if (!(this instanceof Wallet)) return new Wallet(config)
 
   if (!config.wallet) throw new Error('config.wallet undefined')
@@ -11,6 +11,7 @@ var Wallet = function (config) {
   if (!config.wallet.bitgo) config.wallet = { bitgo: config.wallet }
   this.config = config.wallet
   this.config.environment = config.wallet.bitgo.environment
+  this.runtime = runtime
   this.bitgo = new (require('bitgo')).BitGo({ accessToken: config.wallet.bitgo.accessToken,
                                               env: config.wallet.bitgo.environment || 'prod' })
   debug('environment: ' + this.config.environment)
@@ -153,10 +154,15 @@ Wallet.providers.bitgo = {
     try {
       result = await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase })
     } catch (ex) {
-console.log('ex=' + JSON.stringify(ex, null, 2))
+      console.log('ex=' + JSON.stringify(ex, null, 2))
       fee = ex.result && ex.result.fee
-      result = await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase, fee: fee })
-console.log('result=' + JSON.stringify(result, null, 2))
+      console.log('fee=' + JSON.stringify(fee, null, 2))
+      try {
+        result = await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase, fee: fee })
+        console.log('result=' + JSON.stringify(result, null, 2))
+      } catch (ex) {
+        console.log('ex=' + JSON.stringify(ex, null, 2))
+      }
     }
   },
 
@@ -217,6 +223,7 @@ console.log('result=' + JSON.stringify(result, null, 2))
         debug('unsignedTx', { satoshis: desired, estimate: fee, actual: transaction.fee })
       } catch (ex) {
         debug('createTransaction', ex)
+        this.runtime.newrelic.noticeError(ex, { recipients: recipients, feeRate: estimate.feePerKb })
         return
       }
       if (fee <= transaction.fee) break

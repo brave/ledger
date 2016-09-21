@@ -24,10 +24,12 @@ underscore.keys(config).forEach((key) => {
   })
 })
 
-module.exports = {
+var runtime = {
   config: config,
   db: new DB(config),
   login: config.login,
-  queue: new Queue(config),
-  wallet: new Wallet(config)
+  queue: new Queue(config)
 }
+runtime.wallet = new Wallet(config, runtime)
+
+module.exports = runtime
