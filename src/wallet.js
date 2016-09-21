@@ -156,12 +156,15 @@ Wallet.providers.bitgo = {
     } catch (ex) {
       console.log('ex=' + JSON.stringify(ex, null, 2))
       fee = ex.result && ex.result.fee
+      if (!fee) throw ex
       console.log('fee=' + JSON.stringify(fee, null, 2))
+      amount -= fee
       try {
         result = await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase, fee: fee })
         console.log('result=' + JSON.stringify(result, null, 2))
       } catch (ex) {
         console.log('ex=' + JSON.stringify(ex, null, 2))
+        throw ex
       }
     }
   },
