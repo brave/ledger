@@ -184,9 +184,47 @@ v1.write =
     }
 }
 
+v1.recover =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var original, wallet
+    var debug = braveHapi.debug(module, request)
+    var paymentId = request.params.paymentId.toLowerCase()
+    var passphrase = request.payload.passPhrase
+    var recoveryId = request.payload.recoveryId
+    var wallets = runtime.db.get('wallets', debug)
+
+    wallet = await wallets.findOne({ paymentId: paymentId })
+    if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
+
+    original = await wallets.findOne({ paymentId: recoveryId })
+    if (!original) return reply(boom.notFound('no such wallet: ' + recoveryId))
+
+    await runtime.wallet.recover(wallet, original, passphrase)
+
+    reply({})
+  }
+},
+
+  description: 'Makes a contribution using the BTC wallet associated with the user',
+  tags: [ 'api' ],
+
+  validate:
+    { params: { paymentId: Joi.string().guid().required().description('identity of the wallet') },
+      payload:
+      { recoveryId: Joi.string().guid().required().description('identity of the wallet to be recovered'),
+        passPhrase: Joi.string().required().description('the passphrase for the wallet to be recovered')
+      }
+    },
+
+  response:
+    { schema: Joi.object().length(0) }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/wallet/{paymentId}').config(v1.read),
-  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}').config(v1.write)
+  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}').config(v1.write),
+  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
