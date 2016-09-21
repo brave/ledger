@@ -18,7 +18,7 @@ var rulesetEntry = async function (request, runtime) {
   if ((!entry) || (entry.version.indexOf(version) !== 0)) {
     if (entry) rulesets.remove({ rulesetId: rulesetId })
 
-    entry = { rules: ledgerBalance.providers, version: version }
+    entry = { ruleset: ledgerBalance.providers, version: version }
   }
 
   return entry
@@ -33,7 +33,7 @@ v1.read =
   return async function (request, reply) {
     var entry = await rulesetEntry(request, runtime)
 
-    reply(entry.rules)
+    reply(entry.ruleset)
   }
 },
 
@@ -60,7 +60,7 @@ v1.create =
     var rulesets = runtime.db.get('rulesets', debug)
 
     state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { rules: request.payload, version: version, type: 'balance/providers' }
+              $set: { ruleset: request.payload, version: version, type: 'balance/providers' }
             }
     await rulesets.update({ rulesetId: rulesetId }, state, { upsert: true })
 
@@ -161,6 +161,6 @@ module.exports.initialize = async function (debug, runtime) {
   ])
 
   entry = await rulesets.findOne({ rulesetId: rulesetId })
-  validity = Joi.validate(entry ? entry.rules : ledgerBalance.providers, ledgerBalance.schema)
+  validity = Joi.validate(entry ? entry.ruleset : ledgerBalance.providers, ledgerBalance.schema)
   if (validity.error) throw new Error(validity.error)
 }
