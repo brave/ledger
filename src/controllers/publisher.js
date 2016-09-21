@@ -3,10 +3,27 @@ var braveHapi = require('../brave-hapi')
 var bson = require('bson')
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
+var underscore = require('underscore')
 
 var v1 = {}
 
 var rulesetId = 1
+
+var rulesetEntry = async function (request, runtime) {
+  var entry
+  var debug = braveHapi.debug(module, request)
+  var version = runtime.npminfo.children['ledger-publisher']
+  var rulesets = runtime.db.get('rulesets', debug)
+
+  entry = await rulesets.findOne({ rulesetId: rulesetId })
+  if ((!entry) || (entry.version.indexOf(version) !== 0)) {
+    if (entry) rulesets.remove({ rulesetId: rulesetId })
+
+    entry = { rules: ledgerPublisher.ruleset, version: version }
+  }
+
+  return entry
+}
 
 /*
    GET /v1/publisher/ruleset
@@ -15,7 +32,9 @@ var rulesetId = 1
 v1.read =
 { handler: function (runtime) {
   return async function (request, reply) {
-    reply(runtime.ruleset)
+    var entry = await rulesetEntry(request, runtime)
+
+    reply(entry.ruleset)
   }
 },
 
@@ -38,15 +57,15 @@ v1.create =
   return async function (request, reply) {
     var state
     var debug = braveHapi.debug(module, request)
+    var version = runtime.npminfo.children['ledger-publisher'] + '-' + underscore.now()
     var rulesets = runtime.db.get('rulesets', debug)
 
     state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { rules: request.payload, type: 'publisher/ruleset' }
+              $set: { rules: request.payload, version: version, type: 'publisher/ruleset' }
             }
     await rulesets.update({ rulesetId: rulesetId }, state, { upsert: true })
-    runtime.ruleset = request.payload
 
-    reply({})
+    reply(version)
   }
 },
 
@@ -63,7 +82,7 @@ v1.create =
     { payload: ledgerPublisher.schema },
 
   response:
-    { schema: Joi.object().length(0) }
+    { schema: Joi.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+-[1-9][0-9]+$/) }
 }
 
 /*
@@ -78,9 +97,7 @@ v1.delete =
 
     await rulesets.remove({ rulesetId: rulesetId })
 
-    runtime.ruleset = ledgerPublisher.rules
-
-    reply({})
+    reply(runtime.npminfo.children['ledger-publisher'])
   }
 },
 
@@ -97,7 +114,30 @@ v1.delete =
     { query: {} },
 
   response:
-    { schema: Joi.object().length(0) }
+    { schema: Joi.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/) }
+}
+
+/*
+   GET /v1/publisher/ruleset/version
+ */
+
+v1.version =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var entry = await rulesetEntry(request, runtime)
+
+    reply(entry.version)
+  }
+},
+
+  description: 'Returns the version of the publisher identity ruleset',
+  tags: [ 'api' ],
+
+  validate:
+    { query: {} },
+
+  response:
+    { schema: Joi.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+(-[1-9]+[0-9]*)?$/) }
 }
 
 /*
@@ -135,6 +175,7 @@ module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/publisher/ruleset').config(v1.read),
   braveHapi.routes.async().post().path('/v1/publisher/ruleset').config(v1.create),
   braveHapi.routes.async().delete().path('/v1/publisher/ruleset').config(v1.delete),
+  braveHapi.routes.async().get().path('/v1/publisher/ruleset/version').config(v1.version),
   braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identify)
 ]
 
@@ -146,14 +187,13 @@ module.exports.initialize = async function (debug, runtime) {
   [ { category: rulesets,
       name: 'rulesets',
       property: 'rulesetId',
-      empty: { rulesetId: 0, type: '', timestamp: bson.Timestamp.ZERO },
+      empty: { rulesetId: 0, type: '', version: '', timestamp: bson.Timestamp.ZERO },
       unique: [ { rulesetId: 1 } ],
-      others: [ { type: 1 }, { timestamp: 1 } ]
+      others: [ { type: 1 }, { version: 1 }, { timestamp: 1 } ]
     }
   ])
 
   entry = await rulesets.findOne({ rulesetId: rulesetId })
-  runtime.ruleset = entry ? entry.rules : ledgerPublisher.rules
-  validity = Joi.validate(runtime.ruleset, ledgerPublisher.schema)
+  validity = Joi.validate(entry ? entry.ruleset : ledgerPublisher.ruleset, ledgerPublisher.schema)
   if (validity.error) throw new Error(validity.error)
 }
