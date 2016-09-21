@@ -150,8 +150,12 @@ Wallet.providers.bitgo = {
     var wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: original.address })
 
     amount = wallet.balance()
-    result = await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase })
-console.log(JSON.stringify(result, null, 2))
+    try {
+      result = await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase })
+console.log('result=' + JSON.stringify(result, null, 2))
+    } catch (ex) {
+console.log('ex=' + JSON.stringify(ex, null, 2))
+    }
   },
 
   submitTx: async function (info, signedTx) {
