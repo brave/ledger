@@ -76,6 +76,13 @@ Wallet.prototype.recurringBTC = function (info, amount, currency) {
   return f.bind(this)(info, amount, currency)
 }
 
+Wallet.prototype.recover = async function (info, original, passphrase) {
+  var f = Wallet.providers[info.provider].recover
+
+  if (!f) throw new Error('provider ' + info.provider + ' recover not supported')
+  return await f.bind(this)(info, original, passphrase)
+}
+
 Wallet.prototype.submitTx = async function (info, signedTx) {
   var f = Wallet.providers[info.provider].submitTx
 
@@ -136,6 +143,15 @@ Wallet.providers.bitgo = {
              confirmed: wallet.confirmedBalance(),
              unconfirmed: wallet.unconfirmedReceives()
            }
+  },
+
+  recover: async function (info, original, passphrase) {
+    var amount, result
+    var wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: original.address })
+
+    amount = wallet.balance()
+    result = await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase })
+console.log(JSON.stringify(result, null, 2))
   },
 
   submitTx: async function (info, signedTx) {
