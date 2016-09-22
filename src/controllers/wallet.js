@@ -187,7 +187,7 @@ v1.write =
 v1.recover =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var original, wallet
+    var original, satoshis, wallet
     var debug = braveHapi.debug(module, request)
     var paymentId = request.params.paymentId.toLowerCase()
     var passphrase = request.payload.passPhrase
@@ -200,9 +200,9 @@ v1.recover =
     original = await wallets.findOne({ paymentId: recoveryId })
     if (!original) return reply(boom.notFound('no such wallet: ' + recoveryId))
 
-    await runtime.wallet.recover(wallet, original, passphrase)
+    satoshis = await runtime.wallet.recover(wallet, original, passphrase)
 
-    reply({})
+    reply({ satoshis: satoshis })
   }
 },
 
@@ -218,7 +218,10 @@ v1.recover =
     },
 
   response:
-    { schema: Joi.object().length(0) }
+    { schema: Joi.object().keys(
+      { satoshis: Joi.number().integer().min(0).optional().description('the recovered amount in satoshis') })
+    }
+
 }
 
 module.exports.routes = [
