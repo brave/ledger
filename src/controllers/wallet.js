@@ -206,7 +206,7 @@ v1.recover =
   }
 },
 
-  description: 'Makes a contribution using the BTC wallet associated with the user',
+  description: 'Recover the balance of an earlier wallet',
   tags: [ 'api' ],
 
   validate:
