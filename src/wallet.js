@@ -161,6 +161,8 @@ Wallet.providers.bitgo = {
       amount -= fee
       await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase, fee: fee })
     }
+
+    return amount
   },
 
   submitTx: async function (info, signedTx) {
