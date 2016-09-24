@@ -25,7 +25,7 @@ gulp.task('run', function () {
   nodemon({
     script: 'src/index.js',
     ext: 'js',
-    env: { 'DEBUG': '*' },
+    /** env: { 'DEBUG': '*' }, **/
     execMap: {
       js: './node_modules/.bin/babel-node'
     },
