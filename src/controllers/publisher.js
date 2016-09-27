@@ -204,10 +204,8 @@ module.exports.initialize = async function (debug, runtime) {
     if ((!rules) || (underscore.isEqual(ledgerPublisher.ruleset, rules))) return
 
     validity = Joi.validate(rules, ledgerPublisher.schema)
-    console.log('validity.error=' + JSON.stringify(validity.error, null, 2))
     if (validity.error) return runtime.newrelic.noticeError(new Error(validity.error), { ledgerPublisher: 'getRules' })
 
     ledgerPublisher.ruleset = rules
-    console.log('done')
   })
 }
