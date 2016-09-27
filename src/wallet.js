@@ -159,6 +159,9 @@ Wallet.providers.bitgo = {
       if (!fee) throw ex
 
       amount -= fee
+      // check for dust
+      if (amount <= 2730) return 0
+
       await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase, fee: fee })
     }
 
