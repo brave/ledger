@@ -63,7 +63,7 @@ server.register(
 
   debug('extensions registered')
 
-  if (runtime.login) {
+  if (runtime.login && !process.env.GITHUB_DISABLE_AUTHENTICATION) {
     server.auth.strategy('github', 'bell', {
       provider: 'github',
       password: require('cryptiles').randomString(64),
