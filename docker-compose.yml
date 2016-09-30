@@ -1,0 +1,27 @@
+ledger:
+  build: .
+  command: npm start
+  ports:
+    - "$EXTERNAL_PORT:8080"
+  links:
+    - mongo
+    - redis
+  environment:
+    - BITGO_TOKEN
+    - BITGO_ENTERPRISE_ID
+    - BITGO_ENVIRONMENT
+    - BITGO_ESCROW_ADDRESS
+    - BITGO_UNSPENDABLE_XPUB
+    - GITHUB_DISABLE_AUTHENTICATION
+    - GITHUB_CLIENT_ID
+    - GITHUB_CLIENT_SECRET
+    - IRON_KEYPASS
+    - GITHUB_FORCE_HTTPS
+    - PORT
+    - MONGODB_URI
+    - REDIS_URL
+    - NODE_ENV
+mongo:
+  image: mongo:latest
+redis:
+  image: redis:latest
