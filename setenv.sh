@@ -16,3 +16,4 @@ export MONGODB_URI="mongo/test"
 export REDIS_URL="redis:6379"
 export NODE_ENV="development"
 export PORT=8080
+export EXTERNAL_PORT=80

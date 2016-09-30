@@ -2,7 +2,7 @@ ledger:
   build: .
   command: npm start
   ports:
-    - "8080:8080"
+    - "$EXTERNAL_PORT:8080"
   links:
     - mongo
     - redis
