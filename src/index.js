@@ -63,6 +63,10 @@ server.register(
 
   debug('extensions registered')
 
+  if (process.env.GITHUB_DISABLE_AUTHENTICATION) {
+    delete runtime.login
+  }
+
   if (runtime.login && !process.env.GITHUB_DISABLE_AUTHENTICATION) {
     server.auth.strategy('github', 'bell', {
       provider: 'github',
@@ -110,13 +114,21 @@ server.ext('onRequest', function (request, reply) {
 server.ext('onPreResponse', function (request, reply) {
   var response = request.response
 
-  if ((!response.isBoom) || (response.output.statusCode !== 401)) {
-    response.header('Cache-Control', 'private')
-    return reply.continue()
+  try {
+    if ((!response.isBoom) || (response.output.statusCode !== 401)) {
+      if(response.header && typeof response.header === 'function') {
+        response.header('Cache-Control', 'private')
+        return reply.continue()
+      }
+    }
+  } catch (exc) {
+    debug('exception in onPreResponse', {'exception': exc})
   }
 
-  request.auth.session.clear()
-  reply.redirect('/v1/login')
+  if(request && request.auth && request.auth.clear) {
+    request.auth.session.clear()
+    reply.redirect('/v1/login')
+  }
 })
 
 server.on('log', function (event, tags) {
