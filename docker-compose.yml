@@ -6,6 +6,8 @@ ledger:
   links:
     - mongo
     - redis
+  volumes:
+    - "$CONFIG_PATH:/usr/src/app/config"
   environment:
     - BITGO_TOKEN
     - BITGO_ENTERPRISE_ID

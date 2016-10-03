@@ -1,22 +1,11 @@
 #!/bin/sh
-. ./setenv.sh
 
-if [ -z "$BITGO_TOKEN" -o -z "$BITGO_ENTERPRISE_ID" ]; then
- echo "ERROR: Missing BITGO_TOKEN or BITGO_ENTERPRISE_ID"
- echo "please edit ./setenv.sh and set BITGO_* vars before running, thanks" 
- exit
-fi
-
-
-if [ "$GITHUB_DISABLE_AUTHENTICATION" != true ]; then
-  if [ -z "$GITHUB_CLIENT_ID" -o -z "$GITHUB_CLIENT_SECRET" ]; then
-    echo "ERROR: Missing GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET"
-    echo "please edit ./setenv.sh and set GITHUB_* vars before running, thanks"
-    echo "OR, you can set GITHUB_DISABLE_AUTHENTICATION=true to disable authentication!"
-    exit
-  fi
+if [ ! -z "$DOCKER_MACHINE_NAME" ]; then
+  export REMOTE_BASE_PATH=$(docker-machine ssh $DOCKER_MACHINE_NAME pwd)
+  export CONFIG_PATH=$REMOTE_BASE_PATH/config
+  docker-machine scp -r  ./config $DOCKER_MACHINE_NAME:$CONFIG_PATH
 else
-  echo "WARNING: Running with GITHUB_DISABLE_AUTHENTICATION=true !"
+  export CONFIG_PATH=$PWD/config
 fi
 
 docker-compose up

@@ -7,10 +7,6 @@ var Wallet = require('./wallet')
 var profile = process.env.NODE_ENV || 'development'
 var config = require('../config/config.' + profile + '.js')
 
-if (process.env.GITHUB_DISABLE_AUTHENTICATION && process.env.GITHUB_DISABLE_AUTHENTICATION !== "false") {
-  config.login = undefined
-}
-
 underscore.keys(config).forEach((key) => {
   var m = config[key]
   if (typeof m === 'undefined') return
