@@ -63,6 +63,10 @@ server.register(
 
   debug('extensions registered')
 
+  if (process.env.GITHUB_DISABLE_AUTHENTICATION) {
+    delete runtime.login
+  }
+
   if (runtime.login && !process.env.GITHUB_DISABLE_AUTHENTICATION) {
     server.auth.strategy('github', 'bell', {
       provider: 'github',
@@ -115,8 +119,10 @@ server.ext('onPreResponse', function (request, reply) {
     return reply.continue()
   }
 
-  request.auth.session.clear()
-  reply.redirect('/v1/login')
+  if(request && request.auth && request.auth.clear) {
+    request.auth.session.clear()
+    reply.redirect('/v1/login')
+  }
 })
 
 server.on('log', function (event, tags) {

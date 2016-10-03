@@ -43,3 +43,4 @@ node_modules
 
 # MTR test files
 mc?.js
+setenv.sh
