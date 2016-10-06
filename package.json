@@ -4,6 +4,7 @@
   "description": "A BTC micropayments system for users and publishers.",
   "main": "index.js",
   "scripts": {
+    "docker-build-image": "docker build -t brave-ledger .",
     "lint": "gulp lint",
     "server": "./node_modules/.bin/babel-node src/index.js",
     "start": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node src/index.js",
@@ -48,7 +49,6 @@
     "monk": "https://github.com/brave/monk.git",
     "monotonic-timestamp": "0.0.9",
     "node-anonize2-relic": "https://github.com/brave/node-anonize2-relic.git",
-    "node-anonize2-relic-emscripten": "https://github.com/brave/node-anonize2-relic-emscripten.git",
     "node-uuid": "1.4.7",
     "newrelic": "1.23.1",
     "rsmq": "^0.7.0",

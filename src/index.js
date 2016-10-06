@@ -115,8 +115,10 @@ server.ext('onPreResponse', function (request, reply) {
     return reply.continue()
   }
 
-  request.auth.session.clear()
-  reply.redirect('/v1/login')
+  if(request && request.auth && request.auth.clear) {
+    request.auth.session.clear()
+    reply.redirect('/v1/login')
+  }
 })
 
 server.on('log', function (event, tags) {

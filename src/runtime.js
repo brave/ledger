@@ -6,6 +6,7 @@ var Wallet = require('./wallet')
 
 var profile = process.env.NODE_ENV || 'development'
 var config = require('../config/config.' + profile + '.js')
+
 underscore.keys(config).forEach((key) => {
   var m = config[key]
   if (typeof m === 'undefined') return
