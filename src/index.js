@@ -42,6 +42,7 @@ server.register(
   },
  */
   require('hapi-async-handler'),
+  require('hapi-auth-bearer-token'),
   require('hapi-auth-cookie'),
   require('inert'),
   require('vision'),
@@ -81,6 +82,17 @@ server.register(
       isSecure: runtime.login.isSecure
     })
   } else debug('github authentication disabled')
+
+  server.auth.strategy('simple', 'bearer-access-token', {
+    allowQueryToken: true,
+    allowMultipleHeaders: false,
+    allowTokenName: 'access_token',
+    validateFunc: function (token, callback) {
+      var tokenlist = process.env.TOKEN_LIST && process.env.TOKEN_LIST.split(',')
+
+      callback(null, ((!tokenlist) || (tokenlist.indexOf(token) !== -1)), { token: token }, null)
+    }
+  })
 })
 
 server.ext('onRequest', function (request, reply) {
@@ -115,7 +127,7 @@ server.ext('onPreResponse', function (request, reply) {
     return reply.continue()
   }
 
-  if(request && request.auth && request.auth.clear) {
+  if (request && request.auth && request.auth.session && request.auth.session.clear) {
     request.auth.session.clear()
     reply.redirect('/v1/login')
   }

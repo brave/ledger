@@ -81,6 +81,6 @@ v1.logout =
 }
 
 module.exports.routes = [
-  braveHapi.routes.async().path('/v1/login').config(v1.login),
+  braveHapi.routes.async().path('/v1/login').extras().config(v1.login),
   braveHapi.routes.async().path('/v1/logout').config(v1.logout)
 ]

@@ -1,11 +1,11 @@
 {
   "name": "brave-ledger",
-  "version": "0.8.85",
+  "version": "0.8.88",
   "description": "A BTC micropayments system for users and publishers.",
   "main": "index.js",
   "scripts": {
     "docker-build-image": "docker build -t brave-ledger .",
-    "lint": "gulp lint",
+    "lint": "standard",
     "server": "./node_modules/.bin/babel-node src/index.js",
     "start": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node src/index.js",
     "test": "npm run test-security",
@@ -38,6 +38,7 @@
     "github": "0.2.4",
     "hapi": "^12.1.0",
     "hapi-async-handler": "^1.0.3",
+    "hapi-auth-bearer-token": "4.3.0",
     "hapi-auth-cookie": "3.1.0",
     "hapi-swagger": "^6.1.0",
     "inert": "^3.2.0",
@@ -48,6 +49,7 @@
     "mongodb": "1.4.39",
     "monk": "https://github.com/brave/monk.git",
     "monotonic-timestamp": "0.0.9",
+    "netmask": "1.0.6",
     "node-anonize2-relic": "https://github.com/brave/node-anonize2-relic.git",
     "node-uuid": "1.4.7",
     "newrelic": "1.23.1",
@@ -73,9 +75,11 @@
     "gulp-standard": "^5.2.2",
     "nsp": "^2.2.0",
     "rsmq-cli": "^0.1.1",
-    "run-sequence": "^1.1.0"
+    "run-sequence": "^1.1.0",
+    "standard": "8.1.0"
   },
   "standard": {
+    "ignore": [ "config/config.*" ],
     "parser": "babel-eslint"
   }
 }
