@@ -40,7 +40,7 @@
     "hapi-async-handler": "^1.0.3",
     "hapi-auth-bearer-token": "4.3.0",
     "hapi-auth-cookie": "3.1.0",
-    "hapi-swagger": "^6.1.0",
+    "hapi-swagger": "https://github.com/brave/hapi-swagger.git",
     "inert": "^3.2.0",
     "joi": "^9.0.0-2",
     "ledger-balance": "^0.8.61",

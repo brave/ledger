@@ -4,7 +4,6 @@
 
 */
 
-var boom = require('boom')
 var Netmask = require('netmask').Netmask
 var underscore = require('underscore')
 var wreck = require('wreck')
@@ -28,22 +27,6 @@ if (whitelist) {
 
     authorizedAddrs.push(entry)
   })
-}
-
-exports.extras = {
-  ext: {
-    onPreAuth: {
-      method: function (request, reply) {
-        var ipaddr = (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(', ')[0]
-
-        if ((!authorizedAddrs) ||
-              (authorizedAddrs.indexOf(ipaddr) !== -1) ||
-              (underscore.find(authorizedBlocks, (block) => { block.contains(ipaddr) }))) return reply.continue()
-
-        return reply(boom.notAcceptable())
-      }
-    }
-  }
 }
 
 var AsyncRoute = function () {
@@ -85,8 +68,15 @@ AsyncRoute.prototype.path = function (path) {
   return this
 }
 
-AsyncRoute.prototype.extras = function (extras) {
-  this.internal.extras = extras || exports.extras
+AsyncRoute.prototype.whitelist = function () {
+  this.internal.extras = {
+    ext: {
+      onPreAuth: {
+        method: require('./hapi-auth-whitelist').authenticate
+      }
+    }
+  }
+
   return this
 }
 

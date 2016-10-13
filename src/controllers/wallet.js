@@ -89,6 +89,10 @@ v1.read =
     }
 }
 
+/*
+   PUT /v1/wallet/{paymentId}
+ */
+
 v1.write =
 { handler: function (runtime) {
   return async function (request, reply) {
@@ -183,6 +187,10 @@ v1.write =
       })
     }
 }
+
+/*
+   PUT /v1/wallet/{paymentId}/recover
+ */
 
 v1.recover =
 { handler: function (runtime) {

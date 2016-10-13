@@ -399,7 +399,9 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
   surveyor.payload = payload
 
   state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-            $set: underscore.extend({ surveyorType: surveyorType, active: surveyorType !== 'contribution', available: true,
+            $set: underscore.extend({ surveyorType: surveyorType,
+                                      active: surveyorType !== 'contribution',
+                                      available: true,
                                       payload: payload }, surveyor)
           }
   if (parentId) state.$set.parentId = parentId

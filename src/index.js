@@ -44,11 +44,16 @@ server.register(
   require('hapi-async-handler'),
   require('hapi-auth-bearer-token'),
   require('hapi-auth-cookie'),
+  require('./hapi-auth-whitelist'),
   require('inert'),
   require('vision'),
   {
     register: require('hapi-swagger'),
     options: {
+      auth: {
+        strategy: 'whitelist',
+        mode: 'required'
+      },
       info: {
         title: npminfo.name,
         version: npminfo.version,

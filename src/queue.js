@@ -124,7 +124,8 @@ Queue.prototype.remove = async function (name, id) {
 }
 
 Queue.prototype.listen = function (name, callback) {
-  var options = { host: this.rsmq.redis.options.host, port: this.rsmq.redis.options.port,
+  var options = { host: this.rsmq.redis.options.host,
+                  port: this.rsmq.redis.options.port,
                   options: underscore.omit(this.rsmq.redis.options, [ 'host', 'port' ])
                 }
   var worker = new (require('rsmq-worker'))(name, options)

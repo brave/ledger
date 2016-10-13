@@ -13,6 +13,10 @@ exports.routes = async function (debug, runtime) {
       config:
         { handler: function (request, reply) {
           reply('Welcome to the Brave Ledger.')
+        },
+        auth: {
+          strategy: 'whitelist',
+          mode: 'required'
         }
       }
     }
