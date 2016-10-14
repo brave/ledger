@@ -12,11 +12,7 @@ exports.routes = async function (debug, runtime) {
       path: '/',
       config:
         { handler: function (request, reply) {
-          reply('Welcome to the Brave Ledger.')
-        },
-        auth: {
-          strategy: 'whitelist',
-          mode: 'required'
+          reply('ack.')
         }
       }
     }
