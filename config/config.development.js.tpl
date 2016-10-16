@@ -1,9 +1,9 @@
 module.exports =
-{ port                  : process.env.PORT || 3001
+{ port                  : process.env.PORT                 || 3001
 , database              :
-  { mongo               : process.env.MONGODB_URI || 'localhost/test' }
+  { mongo               : process.env.MONGODB_URI          || 'localhost/test' }
 , queue                 :
-  { rsmq                : process.env.REDIS_URL || 'localhost:6379' }
+  { rsmq                : process.env.REDIS_URL            || 'localhost:6379' }
 , wallet                :
   { bitgo               :
     { accessToken       : process.env.BITGO_TOKEN
@@ -27,6 +27,6 @@ module.exports =
   , clientId            : process.env.GITHUB_CLIENT_ID
   , clientSecret        : process.env.GITHUB_CLIENT_SECRET
   , ironKey             : process.env.IRON_KEYPASS
-  , isSecure            : process.env.GITHUB_FORCE_HTTPS || false
+  , isSecure            : process.env.GITHUB_FORCE_HTTPS   || false
   }
 }
