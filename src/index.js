@@ -163,6 +163,12 @@ server.on('log', function (event, tags) {
                  error: braveHapi.error.inspect(request.response._error)
                }
 
+  if ((request.response.statusCode === 401) || (request.response.statusCode === 406)) {
+    runtime.notify(debug, { text: JSON.stringify(
+      underscore.extend({ address: (request.headers['x-forwarded-for'] || request.info.remoteAddress) }, params.request))
+    })
+  }
+
   logger.forEach((entry) => {
     if ((entry.data) && (typeof entry.data.msec === 'number')) { params.request.duration = entry.data.msec }
   })
