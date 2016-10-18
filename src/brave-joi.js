@@ -6,7 +6,8 @@
 
 var base58check = require('bs58check')
 var bitcoin = require('bitcoinjs-lib')
-var currencyCodes = require('currency-codes')()
+var countryCodes = require('country-list')()
+var currencyCodes = require('currency-codes')
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
 
@@ -16,6 +17,7 @@ module.exports = Joi.extend({
   language: {
     badBase58: 'bad Base58 encoding',
     badFormat: 'invalid format',
+    badCountryCode: 'invalid country code',
     badCurrencyCode: 'invalid currency code'
   },
   rules: [
@@ -25,6 +27,17 @@ module.exports = Joi.extend({
         try { base58check.decode(value) } catch (err) {
           return this.createError('string.badBase58', { v: value }, state, options)
         }
+
+        return value
+      }
+    },
+
+    { name: 'countryCode',
+
+      validate (params, value, state, options) {
+        var entry = countryCodes.getName(value)
+
+        if (!entry) return this.createError('string.badCountryCode', { v: value }, state, options)
 
         return value
       }
