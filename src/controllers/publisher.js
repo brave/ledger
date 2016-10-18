@@ -1,5 +1,6 @@
 var boom = require('boom')
 var braveHapi = require('../brave-hapi')
+var braveJoi = require('../brave-joi')
 var bson = require('bson')
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
@@ -171,12 +172,49 @@ v1.identify =
     { schema: Joi.object().optional().description('the publisher identity') }
 }
 
+/*
+   PATCH /v1/publisher/verify
+ */
+
+v1.verify =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var state
+    var debug = braveHapi.debug(module, request)
+    var payload = request.payload
+    var publisher = payload.publisher
+    var verified = payload.verified
+    var publishers = runtime.db.get('publishers', debug)
+
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+              $set: { verified: verified }
+            }
+    await publishers.update({ publisher: publisher }, state, { upsert: true })
+
+    reply({})
+  }
+},
+
+  description: 'Updates the verification status of a publisher',
+  tags: [ 'api' ],
+
+  validate:
+    { payload: { publisher: braveJoi.string().publisher().required().description('the publisher identity'),
+                 verified: Joi.boolean().required().description('verifiation status')
+               }
+    },
+
+  response:
+    { schema: Joi.object().length(0) }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/publisher/ruleset').config(v1.read),
   braveHapi.routes.async().post().path('/v1/publisher/ruleset').config(v1.create),
   braveHapi.routes.async().delete().path('/v1/publisher/ruleset').config(v1.delete),
   braveHapi.routes.async().get().path('/v1/publisher/ruleset/version').config(v1.version),
-  braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identify)
+  braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identify),
+  braveHapi.routes.async().patch().path('/v1/publisher/verify').whitelist().config(v1.verify)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
@@ -190,6 +228,13 @@ module.exports.initialize = async function (debug, runtime) {
       empty: { rulesetId: 0, type: '', version: '', timestamp: bson.Timestamp.ZERO },
       unique: [ { rulesetId: 1 } ],
       others: [ { type: 1 }, { version: 1 }, { timestamp: 1 } ]
+    },
+    { category: runtime.db.get('publishers', debug),
+      name: 'publishers',
+      property: 'publisher',
+      empty: { publisher: '', verified: false, timestamp: bson.Timestamp.ZERO },
+      unique: [ { publisher: 1 } ],
+      others: [ { verified: 1 }, { timestamp: 1 } ]
     }
   ])
 
