@@ -4,7 +4,7 @@
 
 */
 
-var Netmask = require('netmask').Netmask
+var ProxyAgent = require('proxy-agent')
 var underscore = require('underscore')
 var wreck = require('wreck')
 
@@ -15,18 +15,6 @@ exports.debug = function (info, request) {
 
   sdebug.initialize({ request: { id: request.id } })
   return sdebug
-}
-
-var whitelist = process.env.IP_WHITELIST && process.env.IP_WHITELIST.split(',')
-if (whitelist) {
-  var authorizedAddrs = [ '127.0.0.1' ]
-  var authorizedBlocks = []
-
-  whitelist.forEach((entry) => {
-    if ((entry.indexOf('/') !== -1) || (entry.split('.').length !== 4)) return authorizedBlocks.push(new Netmask(entry))
-
-    authorizedAddrs.push(entry)
-  })
 }
 
 var AsyncRoute = function () {
@@ -116,9 +104,23 @@ var ErrorInspect = function (err) {
 
 exports.error = { inspect: ErrorInspect }
 
+var WreckProxy = function (server, opts) {
+  var useProxyP
+
+  if ((!opts) || (typeof opts.useProxyP === 'undefined')) return { server: server, opts: opts }
+
+  useProxyP = opts.useProxyP
+  opts = underscore.omit(opts, [ 'useProxyP' ])
+  if ((!useProxyP) || (!process.env.FIXIE_URL)) return { server: server, opts: opts }
+
+  return { server: server, opts: underscore.extend(opts, { agent: new ProxyAgent(process.env.FIXIE_URL) }) }
+}
+
 var WreckGet = async function (server, opts) {
+  var params = WreckProxy(server, opts)
+
   return new Promise((resolve, reject) => {
-    wreck.get(server, opts, (err, response, body) => {
+    wreck.get(params.server, params.opts, (err, response, body) => {
       if (err) return reject(err)
 
       resolve(body)
@@ -127,8 +129,10 @@ var WreckGet = async function (server, opts) {
 }
 
 var WreckPost = async function (server, opts) {
+  var params = WreckProxy(server, opts)
+
   return new Promise((resolve, reject) => {
-    wreck.post(server, opts, (err, response, body) => {
+    wreck.post(params.server, params.opts, (err, response, body) => {
       if (err) return reject(err)
 
       resolve(body)
@@ -137,8 +141,10 @@ var WreckPost = async function (server, opts) {
 }
 
 var WreckPatch = async function (server, opts) {
+  var params = WreckProxy(server, opts)
+
   return new Promise((resolve, reject) => {
-    wreck.patch(server, opts, (err, response, body) => {
+    wreck.patch(params.server, params.opts, (err, response, body) => {
       if (err) return reject(err)
 
       resolve(body)
