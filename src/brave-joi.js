@@ -6,7 +6,7 @@
 
 var base58check = require('bs58check')
 var bitcoin = require('bitcoinjs-lib')
-var currencyCodes = require('currency-codes')
+var currencyCodes = require('currency-codes')()
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
 

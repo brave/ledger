@@ -34,6 +34,7 @@
     "coinbase": "^2.0.5",
     "crumb": "6.0.0",
     "cryptiles": "3.0.0",
+    "country-list": "1.0.0",
     "currency-codes": "1.1.2",
     "github": "0.2.4",
     "hapi": "^12.1.0",
