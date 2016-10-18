@@ -195,11 +195,17 @@ v1.verify =
   }
 },
 
+  auth:
+    { strategy: 'simple',
+      mode: 'required'
+    },
+
   description: 'Updates the verification status of a publisher',
   tags: [ 'api' ],
 
   validate:
-    { payload: { publisher: braveJoi.string().publisher().required().description('the publisher identity'),
+    { query: { access_token: Joi.string().guid().optional() },
+      payload: { publisher: braveJoi.string().publisher().required().description('the publisher identity'),
                  verified: Joi.boolean().required().description('verifiation status')
                }
     },

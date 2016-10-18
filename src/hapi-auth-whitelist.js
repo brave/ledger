@@ -21,7 +21,6 @@ const internals = {
 
 exports.authenticate = (request, reply) => {
   var ipaddr = (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(', ')[0]
-  console.log('\n' + 'ipaddr=' + ipaddr + ' authorizedAddrs=' + JSON.stringify(authorizedAddrs))
 
   if ((authorizedAddrs) &&
         (authorizedAddrs.indexOf(ipaddr) === -1) &&
