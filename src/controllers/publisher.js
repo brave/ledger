@@ -1,6 +1,5 @@
 var boom = require('boom')
 var braveHapi = require('../brave-hapi')
-var braveJoi = require('../brave-joi')
 var bson = require('bson')
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
@@ -172,55 +171,12 @@ v1.identify =
     { schema: Joi.object().optional().description('the publisher identity') }
 }
 
-/*
-   PATCH /v1/publisher/verify
- */
-
-v1.verify =
-{ handler: function (runtime) {
-  return async function (request, reply) {
-    var state
-    var debug = braveHapi.debug(module, request)
-    var payload = request.payload
-    var publisher = payload.publisher
-    var verified = payload.verified
-    var publishers = runtime.db.get('publishers', debug)
-
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { verified: verified }
-            }
-    await publishers.update({ publisher: publisher }, state, { upsert: true })
-
-    reply({})
-  }
-},
-
-  auth:
-    { strategy: 'simple',
-      mode: 'required'
-    },
-
-  description: 'Updates the verification status of a publisher',
-  tags: [ 'api' ],
-
-  validate:
-    { query: { access_token: Joi.string().guid().optional() },
-      payload: { publisher: braveJoi.string().publisher().required().description('the publisher identity'),
-                 verified: Joi.boolean().required().description('verifiation status')
-               }
-    },
-
-  response:
-    { schema: Joi.object().length(0) }
-}
-
 module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/publisher/ruleset').config(v1.read),
   braveHapi.routes.async().post().path('/v1/publisher/ruleset').config(v1.create),
   braveHapi.routes.async().delete().path('/v1/publisher/ruleset').config(v1.delete),
   braveHapi.routes.async().get().path('/v1/publisher/ruleset/version').config(v1.version),
-  braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identify),
-  braveHapi.routes.async().patch().path('/v1/publisher/verify').whitelist().config(v1.verify)
+  braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identify)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
@@ -259,4 +215,41 @@ module.exports.initialize = async function (debug, runtime) {
 
     ledgerPublisher.ruleset = rules
   })
+
+  await runtime.queue.create('publisher-report')
+  runtime.queue.listen('publisher-report',
+    runtime.newrelic.createBackgroundTransaction('publisher-report', async function (err, debug, payload) {
+/* sent when the publisher status updates
+
+    { queue            : 'publisher-report'
+    , message          :
+      { publisher      : '...'
+      , verified       : true
+      }
+    }
+ */
+
+      var report
+
+      if (err) return debug('publisher-report listen', err)
+
+      report = async function () {
+        var state
+        var publisher = payload.publisher
+        var verified = payload.verified
+        var publishers = runtime.db.get('publishers', debug)
+
+        state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+                  $set: { verified: verified }
+                }
+        await publishers.update({ publisher: publisher }, state, { upsert: true })
+      }
+
+      try { await report() } catch (ex) {
+        debug('publisher-report', { payload: payload, err: ex, stack: ex.stack })
+        runtime.newrelic.noticeError(ex, payload)
+      }
+      runtime.newrelic.endTransaction()
+    })
+  )
 }
