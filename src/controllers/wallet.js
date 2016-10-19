@@ -232,10 +232,47 @@ v1.recover =
 
 }
 
+/*
+   GET /v1/address/{address}/validate
+ */
+
+v1.validate =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var wallet
+    var debug = braveHapi.debug(module, request)
+    var address = request.params.address
+    var wallets = runtime.db.get('wallets', debug)
+
+    wallet = await wallets.findOne({ address: address })
+    if (!wallet) return reply(boom.notFound('invalid address: ' + address))
+
+    reply({})
+  }
+},
+
+  auth:
+    { strategy: 'simple',
+      mode: 'required'
+    },
+
+  description: 'Determines the validity of a BTC address',
+  tags: [ 'api' ],
+
+  validate:
+    { params: { address: braveJoi.string().base58().required().description('BTC address') },
+      query: { access_token: Joi.string().guid().optional() }
+    },
+
+  response:
+    { schema: Joi.object().length(0) }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/wallet/{paymentId}').config(v1.read),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}').config(v1.write),
-  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover)
+  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover),
+  braveHapi.routes.async().path('/v1/address/{address}/validate').whitelist().config(v1.validate)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
