@@ -36,8 +36,7 @@ runtime.notify = (debug, payload) => {
   if (!runtime.slack) return debug('notify', 'slack webhook not configured')
   underscore.defaults(payload, { channel: params.channel,
                                  username: params.username || 'webhookbot',
-                                 icon_emoji: params.icon_emoji || ':ghost:',
-                                 icon_url: params.icon_url || ':ghost:',
+                                 icon_url: params.icon_url,
                                  text: 'ping.' })
   runtime.slack.send(payload, (res, err, body) => {
     if (err) debug('notify', err)
