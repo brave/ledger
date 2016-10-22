@@ -173,22 +173,19 @@ v1.identity =
 }
 
 /*
-   GET /v1/publisher/verified
+   GET /v1/publisher/identity/verified
  */
 
 v1.verified =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var entries, query, result
+    var entries, result
     var limit = request.query.limit
-    var substring = request.query.substring
-    var tld = request.query.tld
+    var tld = request.query.tld || { $exists: true }
     var debug = braveHapi.debug(module, request)
     var publishers = runtime.db.get('publishers', debug)
 
-    query = { verified: true, tld: tld }
-    if (substring) query.$text = { $search: substring }
-    entries = await publishers.find(query, { limit: limit })
+    entries = await publishers.find({ verified: true, tld: tld }, { fields: { publisher: 1 }, limit: limit })
     result = []
     entries.forEach((entry) => { result.push(entry.publisher) })
     reply(result)
@@ -199,8 +196,7 @@ v1.verified =
   tags: [ 'api' ],
 
   validate:
-    { query: { limit: Joi.number().integer().min(1).default(500).description('maximum number of matches'),
-               substring: Joi.string().hostname().optional().description('a string to match '),
+    { query: { limit: Joi.number().integer().positive().default(500).description('maximum number of matches'),
                tld: Joi.string().hostname().optional().description('a suffix-matching string') } },
 
   response:
@@ -213,7 +209,7 @@ module.exports.routes = [
   braveHapi.routes.async().delete().path('/v1/publisher/ruleset').config(v1.delete),
   braveHapi.routes.async().get().path('/v1/publisher/ruleset/version').config(v1.version),
   braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identity),
-  braveHapi.routes.async().get().path('/v1/publisher/verified').config(v1.verified)
+  braveHapi.routes.async().get().path('/v1/publisher/identity/verified').config(v1.verified)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
@@ -233,8 +229,7 @@ module.exports.initialize = async function (debug, runtime) {
       property: 'publisher',
       empty: { publisher: '', tld: '', verified: false, timestamp: bson.Timestamp.ZERO },
       unique: [ { publisher: 1 } ],
-      others: [ { tld: 1 }, { verified: 1 }, { timestamp: 1 } ],
-      raw: [ { publisher: 'text' } ]
+      others: [ { tld: 1 }, { verified: 1 }, { timestamp: 1 } ]
     }
   ])
 
