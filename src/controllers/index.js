@@ -42,8 +42,7 @@ exports.routes = async function (debug, runtime) {
 
   names = fs.readdirSync(__dirname)
   for (i = names.length - 1; i >= 0; i--) {
-    // test not really needed, but for future safety...
-    if (names[i] === 'index.js') continue
+    if ((names[i] === 'index.js') || (path.extname(names[i]) !== '.js')) continue
 
     try {
       routes.concat(await router(names[i]))

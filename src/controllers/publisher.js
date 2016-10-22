@@ -3,6 +3,7 @@ var braveHapi = require('../brave-hapi')
 var bson = require('bson')
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
+var tldjs = require('tldjs')
 var underscore = require('underscore')
 
 var v1 = {}
@@ -144,7 +145,7 @@ v1.version =
    GET /v1/publisher/identity?url=...
  */
 
-v1.identify =
+v1.identity =
 { handler: function (runtime) {
   return async function (request, reply) {
     var result
@@ -171,12 +172,47 @@ v1.identify =
     { schema: Joi.object().optional().description('the publisher identity') }
 }
 
+/*
+   GET /v1/publisher/verified
+ */
+
+v1.verified =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var entries, query
+    var limit = request.query.limit
+    var substring = request.query.substring
+    var tld = request.query.tld
+    var debug = braveHapi.debug(module, request)
+    var publishers = runtime.db.get('publishers', debug)
+
+    query = { verified: true, tld: tld }
+    if (substring) query.$text = { $search: substring }
+    console.log(JSON.stringify(query, null, 2))
+    entries = publishers.find(query, { limit: limit })
+    reply(entries)
+  }
+},
+
+  description: 'Returns a list of verified publishers',
+  tags: [ 'api' ],
+
+  validate:
+    { query: { limit: Joi.number().integer().min(1).default(500).description('maximum number of matches'),
+               substring: Joi.string().optional().description('a string to match '),
+               tld: Joi.string().optional().description('a suffix-matching string') } },
+
+  response:
+    { schema: Joi.array().items(Joi.string()).description('verified publishers') }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/publisher/ruleset').config(v1.read),
   braveHapi.routes.async().post().path('/v1/publisher/ruleset').config(v1.create),
   braveHapi.routes.async().delete().path('/v1/publisher/ruleset').config(v1.delete),
   braveHapi.routes.async().get().path('/v1/publisher/ruleset/version').config(v1.version),
-  braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identify)
+  braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identity),
+  braveHapi.routes.async().get().path('/v1/publisher/verified').config(v1.verified)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
@@ -194,9 +230,10 @@ module.exports.initialize = async function (debug, runtime) {
     { category: runtime.db.get('publishers', debug),
       name: 'publishers',
       property: 'publisher',
-      empty: { publisher: '', verified: false, timestamp: bson.Timestamp.ZERO },
+      empty: { publisher: '', tld: '', verified: false, timestamp: bson.Timestamp.ZERO },
       unique: [ { publisher: 1 } ],
-      others: [ { verified: 1 }, { timestamp: 1 } ]
+      others: [ { tld: 1 }, { verified: 1 }, { timestamp: 1 } ],
+      raw: [ { publisher: 'text' } ]
     }
   ])
 
@@ -234,13 +271,20 @@ module.exports.initialize = async function (debug, runtime) {
       if (err) return debug('publisher-report listen', err)
 
       report = async function () {
-        var state
+        var state, tld
         var publisher = payload.publisher
         var verified = payload.verified
         var publishers = runtime.db.get('publishers', debug)
 
+        try {
+          tld = tldjs.getPublicSuffix(publisher)
+        } catch (ex) {
+          debug('publisher-report', { payload: payload, err: ex, stack: ex.stack })
+        }
+        if (!tld) return debug('publisher-report', 'invalid publisher domain: ' + publisher)
+
         state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                  $set: { verified: verified }
+                  $set: { verified: verified, tld: tld }
                 }
         await publishers.update({ publisher: publisher }, state, { upsert: true })
       }

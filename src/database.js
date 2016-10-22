@@ -39,6 +39,10 @@ DB.prototype.checkIndices = async function (debug, entries) {
 
       (entry.others || []).forEach(async function (index) {
         await category.index(index, { unique: false })
+      });
+
+      (entry.raw || []).forEach(async function (index) {
+        await category.index(index)
       })
     } catch (ex) {
       debug('unable to create ' + entry.name + ' ' + entry.property + ' index', ex)
