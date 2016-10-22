@@ -237,7 +237,6 @@ module.exports.initialize = async function (debug, runtime) {
       raw: [ { publisher: 'text' } ]
     }
   ])
-  console.log(JSON.stringify(runtime.db.get('publishers', debug).indexes(), null, 2))
 
   entry = await rulesets.findOne({ rulesetId: rulesetId })
   validity = Joi.validate(entry ? entry.ruleset : ledgerPublisher.ruleset, ledgerPublisher.schema)
