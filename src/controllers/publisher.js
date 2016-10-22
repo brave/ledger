@@ -179,7 +179,7 @@ v1.identity =
 v1.verified =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var entries, query
+    var query
     var limit = request.query.limit
     var substring = request.query.substring
     var tld = request.query.tld
@@ -189,8 +189,7 @@ v1.verified =
     query = { verified: true, tld: tld }
     if (substring) query.$text = { $search: substring }
     console.log(JSON.stringify(query, null, 2))
-    entries = publishers.find(query, { limit: limit })
-    reply(entries)
+    reply(await publishers.find(query, { limit: limit }))
   }
 },
 
