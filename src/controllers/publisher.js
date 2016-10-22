@@ -188,9 +188,7 @@ v1.verified =
 
     query = { verified: true, tld: tld }
     if (substring) query.$text = { $search: substring }
-    console.log(JSON.stringify(query, null, 2))
     entries = await publishers.find(query, { limit: limit })
-    console.log(JSON.stringify(entries, null, 2))
     result = []
     entries.forEach((entry) => { result.push(entry.publisher) })
     reply(result)
@@ -202,8 +200,8 @@ v1.verified =
 
   validate:
     { query: { limit: Joi.number().integer().min(1).default(500).description('maximum number of matches'),
-               substring: Joi.string().optional().description('a string to match '),
-               tld: Joi.string().optional().description('a suffix-matching string') } },
+               substring: Joi.string().hostname().optional().description('a string to match '),
+               tld: Joi.string().hostname().optional().description('a suffix-matching string') } },
 
   response:
     { schema: Joi.array().items(Joi.string()).description('verified publishers') }
@@ -239,6 +237,7 @@ module.exports.initialize = async function (debug, runtime) {
       raw: [ { publisher: 'text' } ]
     }
   ])
+  console.log(JSON.stringify(runtime.db.get('publishers', debug).indexes(), null, 2))
 
   entry = await rulesets.findOne({ rulesetId: rulesetId })
   validity = Joi.validate(entry ? entry.ruleset : ledgerPublisher.ruleset, ledgerPublisher.schema)
