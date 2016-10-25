@@ -178,9 +178,7 @@ v1.create =
               prefix = ((host.indexOf('127.0.0.1') !== 0) && (host.indexOf('localhost') !== 0))
                          ? ('https://' + host) : 'https://ledger-integration.brave.com'
               try {
-                debug('!!!wallet creation', { prefix: prefix, paymentId: paymentId, keychains: keychains })
                 result = await runtime.wallet.create(prefix, paymentId, keychains)
-                debug('!!!wallet created', { prefix: prefix, paymentId: paymentId, keychains: keychains })
                 wallet = result.wallet
                 wallet.address = wallet.id
               } catch (ex) {
