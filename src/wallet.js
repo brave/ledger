@@ -21,12 +21,9 @@ Wallet.prototype.create = async function (prefix, label, keychains) {
   var result
   var xpubs = []
 
-  debug('!!!wallet keychains.add(1)', underscore.extend({ label: 'user' }, keychains.user))
   xpubs[0] = underscore.pick(await this.bitgo.keychains().add(underscore.extend({ label: 'user' }, keychains.user)), [ 'xpub' ])
-  debug('!!!wallet keychains.add(2)', { label: 'unspendable', xpub: this.config.bitgo.unspendableXpub })
   xpubs[1] = underscore.pick(await this.bitgo.keychains().add({ label: 'unspendable',
                                                                 xpub: this.config.bitgo.unspendableXpub }), [ 'xpub' ])
-  debug('!!!wallet keychains.crdateBitGo', {})
   xpubs[2] = underscore.pick(await this.bitgo.keychains().createBitGo({}), [ 'xpub' ])
 
   debug('!!!wallet add', { label: label,
