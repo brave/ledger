@@ -26,13 +26,6 @@ Wallet.prototype.create = async function (prefix, label, keychains) {
                                                                 xpub: this.config.bitgo.unspendableXpub }), [ 'xpub' ])
   xpubs[2] = underscore.pick(await this.bitgo.keychains().createBitGo({}), [ 'xpub' ])
 
-  debug('!!!wallet add', { label: label,
-                           m: 2,
-                           n: 3,
-                           keychains: xpubs,
-                           enterprise: this.config.bitgo.enterpriseId,
-                           disableTransactionNotifications: true
-                         })
   result = await this.bitgo.wallets().add({ label: label,
                                             m: 2,
                                             n: 3,
@@ -42,19 +35,9 @@ Wallet.prototype.create = async function (prefix, label, keychains) {
                                           })
   result.wallet.provider = 'bitgo'
 
-  debug('!!!wallet addWebhook', { url: prefix + '/callbacks/bitgo/sink', type: 'transaction', numConfirmations: 1 })
   result.addWebhook({ url: prefix + '/callbacks/bitgo/sink', type: 'transaction', numConfirmations: 1 }, function (err) {
     if (err) debug('wallet addWebhook', { label: label, message: err.toString() })
 
-    debug('!!!wallet setPolicyRule', { id: 'com.brave.limit.velocity.30d',
-                                       type: 'velocityLimit',
-                                       condition: { type: 'velocity',
-                                                    amount: 7000000,
-                                                    timeWindow: 30 * 86400,
-                                                    groupTags: [],
-                                                    excludeTags: []
-                                                  },
-                                       action: { type: 'deny' } })
     result.setPolicyRule({ id: 'com.brave.limit.velocity.30d',
                            type: 'velocityLimit',
                            condition: { type: 'velocity',
