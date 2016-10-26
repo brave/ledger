@@ -1,6 +1,6 @@
 {
   "name": "brave-ledger",
-  "version": "0.8.89",
+  "version": "0.9.0",
   "description": "A BTC micropayments system for users and publishers.",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "babel-preset-stage-2": "^6.1.2",
     "bell": "6.0.0",
     "bitcoinjs-lib": "^2.2.0",
-    "bitgo": "^1.8.0",
+    "bitgo": "^2.0.4",
     "blipp": "2.3.0",
     "boom": "3.0.0",
     "bs58check": "^1.0.5",
@@ -59,6 +59,7 @@
     "rsmq": "^0.7.0",
     "rsmq-worker": "^0.4.1",
     "sdebug": "^0.9.0",
+    "throng": "4.0.0",
     "tldjs": "1.6.2",
     "underscore": "1.8.3",
     "vision": "^4.0.0",

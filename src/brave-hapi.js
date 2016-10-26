@@ -4,6 +4,7 @@
 
 */
 
+var path = require('path')
 var ProxyAgent = require('proxy-agent')
 var underscore = require('underscore')
 var wreck = require('wreck')
@@ -104,10 +105,20 @@ var ErrorInspect = function (err) {
 
 exports.error = { inspect: ErrorInspect }
 
+var npminfo = require(path.join(__dirname, '..', 'package'))
+var WreckUA = npminfo.name + '/' + npminfo.version + ' wreck/' + npminfo.dependencies.wreck
+underscore.keys(process.versions).forEach((version) => {
+  WreckUA += ' ' + version + '/' + process.versions[version]
+})
+
 var WreckProxy = function (server, opts) {
   var useProxyP
 
-  if ((!opts) || (typeof opts.useProxyP === 'undefined')) return { server: server, opts: opts }
+  if (!opts) opts = {}
+  if (!opts.headers) opts.headers = {}
+  if (!opts.headers['user-agent']) opts.headers['user-agent'] = WreckUA
+
+  if (typeof opts.useProxyP === 'undefined') return { server: server, opts: opts }
 
   useProxyP = opts.useProxyP
   opts = underscore.omit(opts, [ 'useProxyP' ])

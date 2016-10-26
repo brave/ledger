@@ -12,7 +12,7 @@ if (!newrelic) {
 var Hapi = require('hapi')
 
 var braveHapi = require('./brave-hapi')
-var debug = new (require('sdebug'))('server')
+var debug = new (require('sdebug'))('web')
 var path = require('path')
 var routes = require('./controllers/index')
 var underscore = require('underscore')
@@ -25,7 +25,7 @@ runtime.newrelic = newrelic
 var server = new Hapi.Server()
 server.connection({ port: runtime.config.port })
 
-debug.initialize({ 'server': { id: server.info.id } })
+debug.initialize({ web: { id: server.info.id } })
 
 server.register(
 [ require('bell'),
@@ -113,6 +113,7 @@ server.ext('onRequest', function (request, reply) {
             params: request.url.params,
             headers: underscore.omit(request.headers, 'cookie')
 /* N.B. do not log IP addresses regardless of whether IP-anonymization is used
+            headers: underscore.omit(request.headers, 'cookie'),
             remote:
             { address: (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(', ')[0],
               port: request.headers['x-forwarded-port'] || request.info.remotePort
@@ -190,7 +191,7 @@ server.on('log', function (event, tags) {
   debug('end', { sdebug: params })
 })
 
-var main = async function () {
+var main = async function (id) {
   var routing = await routes.routes(debug, runtime)
 
   server.route(routing)
@@ -233,8 +234,8 @@ var main = async function () {
     })
     runtime.npminfo = underscore.pick(npminfo, 'name', 'version', 'description', 'author', 'license', 'bugs', 'homepage')
     runtime.npminfo.children = {}
-    runtime.notify(debug, { text: require('os').hostname() + ' ' + npminfo.name + '@' + npminfo.version + ' started ' +
-                                  (process.env.DYNO || '') })
+    runtime.notify(debug, { text: require('os').hostname() + ' ' + npminfo.name + '@' + npminfo.version +
+                                  ' started ' + (process.env.DYNO || '') + '/' + id })
 
     f(module)
     underscore.keys(children).sort().forEach(m => { runtime.npminfo.children[m] = children[m] })
@@ -244,4 +245,7 @@ var main = async function () {
   })
 }
 
-main()
+require('throng')({ start: main,
+                    workers: process.env.WEB_CONCURRENCY || 1,
+                    lifetime: Infinity
+                  })
