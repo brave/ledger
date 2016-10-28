@@ -45,7 +45,7 @@ exports.routes = async function (debug, runtime) {
     if ((names[i] === 'index.js') || (path.extname(names[i]) !== '.js')) continue
 
     try {
-      routes.concat(await router(names[i]))
+      await router(names[i])
     } catch (ex) {
       debug('error loading routes for ' + names[i] + ': ' + ex.toString())
       console.log(ex.stack)

@@ -1,6 +1,6 @@
 {
   "name": "brave-ledger",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "A BTC micropayments system for users and publishers.",
   "main": "index.js",
   "scripts": {
@@ -37,6 +37,7 @@
     "country-list": "1.0.0",
     "currency-codes": "1.1.2",
     "github": "0.2.4",
+    "gridfs-stream": "1.1.1",
     "hapi": "^12.1.0",
     "hapi-async-handler": "^1.0.3",
     "hapi-auth-bearer-token": "4.3.0",
@@ -44,10 +45,11 @@
     "hapi-swagger": "https://github.com/brave/hapi-swagger.git",
     "inert": "^3.2.0",
     "joi": "^9.0.0-2",
+    "json-stringify-safe": "^5.0.1",
     "ledger-balance": "^0.8.61",
     "ledger-publisher": "^0.8.90",
     "moment": "^2.13.0",
-    "mongodb": "1.4.39",
+    "mongodb": "^2.1.18",
     "monk": "https://github.com/brave/monk.git",
     "monotonic-timestamp": "0.0.9",
     "netmask": "1.0.6",

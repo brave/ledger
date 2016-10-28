@@ -1,3 +1,6 @@
+var mongodb = require('mongodb')
+var GridStore = mongodb.GridStore
+var GridStream = require('gridfs-stream')
 var monk = require('monk')
 var debug = new (require('sdebug'))('database')
 var underscore = require('underscore')
@@ -8,7 +11,35 @@ var DB = function (config) {
   if (!config.database) throw new Error('config.database undefined')
 
   if (config.database.mongo) config.database = config.database.mongo
-  this.db = monk(config.database, { debug: debug })
+  this.config = config.database
+  this.db = monk(this.config, { debug: debug })
+}
+
+DB.prototype.file = async function (filename, mode, options) {
+  options = underscore.extend(options || {}, { safe: true })
+
+  if (mode !== 'r') return (await new GridStore(this.db._db, filename, mode, options).open())
+
+  return new Promise((resolve, reject) => {
+    GridStore.exist(this.db._db, filename, (err, result) => {
+      var gridStore
+
+      if (err) return reject(err)
+
+      if (!result) return resolve(null)
+
+      gridStore = new GridStore(this.db._db, filename, mode, options)
+      gridStore.open((err, result) => {
+        if (err) return reject(err)
+
+        resolve(result)
+      })
+    })
+  })
+}
+
+DB.prototype.source = function (options) {
+  return GridStream(this.db._db, mongodb).createReadStream(options)
 }
 
 DB.prototype.get = function (collection, debug) {

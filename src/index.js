@@ -9,13 +9,13 @@ if (!newrelic) {
   }
 }
 
-var Hapi = require('hapi')
-
 var braveHapi = require('./brave-hapi')
 var debug = new (require('sdebug'))('web')
+var Hapi = require('hapi')
 var path = require('path')
 var routes = require('./controllers/index')
 var underscore = require('underscore')
+var url = require('url')
 var util = require('util')
 
 var npminfo = require(path.join(__dirname, '..', 'package'))
@@ -23,7 +23,7 @@ var runtime = require('./runtime.js')
 runtime.newrelic = newrelic
 
 var server = new Hapi.Server()
-server.connection({ port: runtime.config.port })
+server.connection({ port: process.env.PORT })
 
 debug.initialize({ web: { id: server.info.id } })
 
@@ -225,17 +225,14 @@ var main = async function (id) {
     }
 
     debug('webserver started',
-    { protocol: server.info.protocol,
-      address: server.info.address,
-      port: runtime.config.port,
-      version: server.version,
-      env: underscore.pick(process.env,
-                           [ 'BITGO_CUSTOM_ROOT_URI', 'BITGO_ENVIRONMENT', 'DEBUG', 'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ])
-    })
+          underscore.extend({ server: url.format(runtime.config.server), version: server.version },
+                            server.info,
+                            { env: underscore.pick(process.env, [ 'BITGO_CUSTOM_ROOT_URI', 'BITGO_ENVIRONMENT', 'DEBUG',
+                                                                  'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ]) }))
     runtime.npminfo = underscore.pick(npminfo, 'name', 'version', 'description', 'author', 'license', 'bugs', 'homepage')
     runtime.npminfo.children = {}
     runtime.notify(debug, { text: require('os').hostname() + ' ' + npminfo.name + '@' + npminfo.version +
-                                  ' started ' + (process.env.DYNO || '') + '/' + id })
+                                  ' started ' + (process.env.DYNO || 'web') + '/' + id })
 
     f(module)
     underscore.keys(children).sort().forEach(m => { runtime.npminfo.children[m] = children[m] })

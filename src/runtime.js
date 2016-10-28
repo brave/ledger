@@ -15,7 +15,7 @@ underscore.keys(config).forEach((key) => {
   underscore.keys(m).forEach((k) => {
     if (typeof m[k] === 'undefined') throw new Error('config.' + key + '.' + k + ': undefined')
 
-    if ((typeof m[k] !== 'number') && (typeof m[k] !== 'boolean') && (!m[k])) {
+    if ((typeof m[k] !== 'number') && (typeof m[k] !== 'boolean') && (typeof m[k] !== 'object') && (!m[k])) {
       throw new Error('config.' + key + '.' + k + ': empty')
     }
   })

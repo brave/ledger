@@ -30,7 +30,7 @@ v1.sink =
     state = { $currentDate: { timestamp: { $type: 'timestamp' } },
               $set: { provider: 'bitgo', payload: payload }
             }
-    await webhooks.update({ webhookId: uuid.v4() }, state, { upsert: true })
+    await webhooks.update({ webhookId: uuid.v4().toLowerCase() }, state, { upsert: true })
 
     reply({})
 
