@@ -38,6 +38,26 @@ DB.prototype.file = async function (filename, mode, options) {
   })
 }
 
+DB.prototype.purgeSince = async function (debug, runtime, timestamp) {
+  var entries, names
+  var reports = runtime.db.get('fs.files', debug)
+
+  await reports.index({ uploadDate: 1 }, { unique: false })
+  entries = await reports.find({ uploadDate: { $lt: new Date(timestamp) } })
+  debug('purgeSince', { count: entries.length })
+
+  if (entries.length === 0) return
+
+  names = underscore.map(entries, (entry) => { return entry._id })
+  return new Promise((resolve, reject) => {
+    GridStore.unlink(this.db._db, names, (err) => {
+      if (err) return debug('purgeSince', err)
+
+      resolve()
+    })
+  })
+}
+
 DB.prototype.source = function (options) {
   return GridStream(this.db._db, mongodb).createReadStream(options)
 }
