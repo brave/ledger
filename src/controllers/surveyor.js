@@ -4,7 +4,6 @@ var braveHapi = require('../brave-hapi')
 var braveJoi = require('../brave-joi')
 var bson = require('bson')
 var Joi = require('joi')
-const moment = require('moment')
 var underscore = require('underscore')
 
 var v1 = {}
@@ -48,6 +47,7 @@ var validate = function (surveyorType, payload) {
 
   return Joi.validate(payload || {}, schema)
 }
+module.exports.validate = validate
 
 var enumerate = function (runtime, surveyorType, payload) {
   var satoshis
@@ -69,6 +69,7 @@ var enumerate = function (runtime, surveyorType, payload) {
   payload.adFree.satoshis = satoshis
   return payload
 }
+module.exports.enumerate = enumerate
 
 /*
    GET /v1/surveyor/{surveyorType}/{surveyorId}
@@ -423,42 +424,7 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
 
   return surveyor
 }
-
-var daily = async function (debug, runtime) {
-  var entries, midnight, tomorrow
-  var now = underscore.now()
-  var surveyorType = 'contribution'
-  var surveyors = runtime.db.get('surveyors', debug)
-
-  debug('daily', 'running')
-
-  midnight = new Date(now)
-  midnight.setHours(0, 0, 0, 0)
-  midnight = Math.floor(midnight.getTime() / 1000)
-
-  entries = await surveyors.find({ surveyorType: surveyorType, active: true }, { limit: 100, sort: { timestamp: -1 } })
-  entries.forEach(async function (entry) {
-    var payload, surveyor, validity
-
-    if (entry.timestamp.high_ >= midnight) return
-
-    validity = validate(surveyorType, entry.payload)
-    if (validity.error) return debug('daily', 'unable to create surveyorType=' + surveyorType + ': ' + validity.error)
-
-    payload = enumerate(runtime, surveyorType, entry.payload)
-    if (!payload) return debug('daily', 'no available currencies' + JSON.stringify(entry.payload))
-
-    surveyor = await create(debug, runtime, surveyorType, payload)
-    if (!surveyor) return debug('daily', 'unable to create surveyorType=' + surveyorType)
-
-    debug('daily', 'created ' + surveyorType + ' surveyorID=' + surveyor.surveyorId)
-  })
-
-  tomorrow = new Date(now)
-  tomorrow.setHours(24, 0, 0, 0)
-  setTimeout(function () { daily(debug, runtime) }, tomorrow - now)
-  debug('daily', 'running again ' + moment(tomorrow).fromNow())
-}
+module.exports.create = create
 
 var provision = async function (debug, runtime, surveyorId) {
   var entries, entry
@@ -543,10 +509,4 @@ module.exports.initialize = async function (debug, runtime) {
       setTimeout(function () { provision(debug, runtime, surveyor.surveyorId) }, 5 * 1000)
     }
   }
-
-/*
-  if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO === 'web.1')) {
-    setTimeout(function () { daily(debug, runtime) }, 5 * 1000)
-  }
- */
 }
