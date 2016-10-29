@@ -3,7 +3,6 @@ var braveHapi = require('../brave-hapi')
 var bson = require('bson')
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
-var tldjs = require('tldjs')
 var underscore = require('underscore')
 
 var v1 = {}
@@ -248,48 +247,4 @@ module.exports.initialize = async function (debug, runtime) {
 
     ledgerPublisher.ruleset = rules
   })
-
-  await runtime.queue.create('publisher-report')
-  runtime.queue.listen('publisher-report',
-    runtime.newrelic.createBackgroundTransaction('publisher-report', async function (err, debug, payload) {
-/* sent when the publisher status updates
-
-    { queue            : 'publisher-report'
-    , message          :
-      { publisher      : '...'
-      , verified       : true
-      }
-    }
- */
-
-      var report
-
-      if (err) return debug('publisher-report listen', err)
-
-      report = async function () {
-        var state, tld
-        var publisher = payload.publisher
-        var verified = payload.verified
-        var publishers = runtime.db.get('publishers', debug)
-
-        try {
-          tld = tldjs.getPublicSuffix(publisher)
-        } catch (ex) {
-          debug('publisher-report', { payload: payload, err: ex, stack: ex.stack })
-        }
-        if (!tld) return debug('publisher-report', 'invalid publisher domain: ' + publisher)
-
-        state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                  $set: { verified: verified, tld: tld }
-                }
-        await publishers.update({ publisher: publisher }, state, { upsert: true })
-      }
-
-      try { await report() } catch (ex) {
-        debug('publisher-report', { payload: payload, err: ex, stack: ex.stack })
-        runtime.newrelic.noticeError(ex, payload)
-      }
-      runtime.newrelic.endTransaction()
-    })
-  )
 }

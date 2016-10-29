@@ -9,7 +9,8 @@
     "server": "./node_modules/.bin/babel-node src/index.js",
     "start": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node src/index.js",
     "test": "npm run test-security",
-    "test-security": "nsp check"
+    "test-security": "nsp check",
+    "worker": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node --optimize_for_size --max_old_space_size=460 --gc_interval=100 src/worker.js"
   },
   "repository": {
     "type": "git",
