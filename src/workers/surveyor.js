@@ -2,8 +2,6 @@ var moment = require('moment')
 var underscore = require('underscore')
 var utilities = require('../controllers/surveyor.js')
 
-var exports = {}
-
 var daily = async function (debug, runtime) {
   var entries, midnight, tomorrow
   var now = underscore.now()
@@ -39,6 +37,8 @@ var daily = async function (debug, runtime) {
   setTimeout(function () { daily(debug, runtime) }, tomorrow - now)
   debug('daily', 'running again ' + moment(tomorrow).fromNow())
 }
+
+var exports = {}
 
 exports.initialize = async function (debug, runtime) {
   if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO === 'worker.1')) {
