@@ -145,7 +145,7 @@ As with fractional voting,
 the client calculates the relative weights of publisher views for each site.
 Then,
 for each of the Voting registrars that it is authorized to use,
-it selects a publisher identity using the an unpredictable, but weighted, algorithm.
+it selects a publisher identity using an unpredictable, but weighted, algorithm.
 For example,
 if site "X" has twice as many publisher views as site "Y" for a particular contribution,
 then site "X" should be twice as likely to be selected for a ballot as site "Y".
