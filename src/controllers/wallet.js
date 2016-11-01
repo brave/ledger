@@ -268,11 +268,66 @@ v1.validate =
     { schema: Joi.object().length(0) }
 }
 
+/*
+   PUT /v1/address/{address}/validate
+ */
+
+/*
+{
+  "ledgerAddress": "3F3Z7m3PuHoqjJn7pAZH5KLLQZSaEAajqM",
+  "actor": "authorize.stripe",
+  "transactionId": "ch_19B2MHFVLz398SRTPTxmXDzV",
+  "amount": 1000,
+  "currency": "usd"
+}
+verify transaction with actor
+record address, amount, description
+generate instructions for bitgo
+ */
+v1.populate =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var wallet
+    var debug = braveHapi.debug(module, request)
+    var address = request.params.address
+    var wallets = runtime.db.get('wallets', debug)
+
+    wallet = await wallets.findOne({ address: address })
+    if (!wallet) return reply(boom.notFound('invalid address: ' + address))
+
+    reply({})
+  }
+},
+
+  auth:
+    { strategy: 'simple',
+      mode: 'required'
+    },
+
+  description: 'Validates the "attempt to populate" a BTC address',
+  tags: [ 'api' ],
+
+  validate:
+    { params: { address: braveJoi.string().base58().required().description('BTC address') },
+      query: { access_token: Joi.string().guid().optional() },
+      payload:
+      { actor: Joi.string().required().description('authorization agent'),
+        transactionId: Joi.string().required().description('transaction-identifier'),
+        amount: Joi.number().min(5).optional().description('the payment amount in fiat currency'),
+        currency: braveJoi.string().currencyCode().optional().default('USD').description('the payment currency')
+      }
+    },
+
+  response:
+    { schema: Joi.object().length(0) }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/wallet/{paymentId}').config(v1.read),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}').config(v1.write),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover),
-  braveHapi.routes.async().path('/v1/address/{address}/validate').whitelist().config(v1.validate)
+  braveHapi.routes.async().path('/v1/address/{address}/validate').whitelist().config(v1.validate),
+  braveHapi.routes.async().put().path('/v1/address/{address}/validate').whitelist().config(v1.populate)
 ]
 
 module.exports.initialize = async function (debug, runtime) {

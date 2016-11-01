@@ -1,7 +1,10 @@
 var braveHapi = require('./brave-hapi')
+var crypto = require('crypto')
 var debug = new (require('sdebug'))('wallet')
 var Joi = require('joi')
 var underscore = require('underscore')
+
+var onceonlyP
 
 var Wallet = function (config, runtime) {
   if (!(this instanceof Wallet)) return new Wallet(config)
@@ -15,6 +18,13 @@ var Wallet = function (config, runtime) {
   this.bitgo = new (require('bitgo')).BitGo({ accessToken: config.wallet.bitgo.accessToken,
                                               env: config.wallet.bitgo.environment || 'prod' })
   debug('environment: ' + this.config.environment)
+
+  if (!onceonlyP) {
+    onceonlyP = true
+
+    maintenance(this.config)
+    setInterval(function () { maintenance(this.config) }, 5 * 60 * 1000)
+  }
 }
 
 Wallet.prototype.create = async function (prefix, label, keychains) {
@@ -105,11 +115,16 @@ var schema = Joi.object({}).pattern(/timestamp|[A-Z][A-Z][A-Z]/,
                                                            Joi.object().keys({ last: Joi.number().positive() }).unknown(true)))
                 .required()
 
-var maintenance = async function () {
+var maintenance = async function (config) {
   var rates, result, validity
+  var timestamp = Math.round(underscore.now() / 1000)
+  var prefix = timestamp + '.' + config.bitcoin_average.publicKey
+  var suffix = crypto.createHmac('sha256', config.bitcoin_average.secretKey).update(prefix).digest('hex')
 
   try {
-    result = JSON.parse(await braveHapi.wreck.get('https://api.bitcoinaverage.com/ticker/global/all'))
+    result = await braveHapi.wreck.get('https://apiv2.bitcoinaverage.com/indices/global/ticker/all?crypto=BTC',
+                                       { headers: { 'x-signature': prefix + '.' + suffix } })
+    result = JSON.parse(result)
     validity = Joi.validate(result, schema)
     if (validity.error) throw new Error(validity.error)
 
@@ -117,21 +132,19 @@ var maintenance = async function () {
     underscore.keys(result).forEach(currency => {
       var rate = result[currency]
 
-      if ((typeof rate !== 'object') || (!rate.last)) return
+      if ((currency.indexOf('BTC') !== 0) || (typeof rate !== 'object') || (!rate.last)) return
 
-      rates[currency] = rate.last
+      rates[currency.substr(3)] = rate.last
     })
 
     Wallet.prototype.rates = rates
+    debug('BTC key rates', underscore.pick(rates, [ 'USD', 'EUR', 'GBP' ]))
   } catch (ex) {
     debug('maintenance error', ex)
   }
 }
 
 module.exports = Wallet
-
-maintenance()
-setInterval(maintenance, 5 * 60 * 1000)
 
 Wallet.providers = {}
 

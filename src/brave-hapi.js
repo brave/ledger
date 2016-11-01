@@ -151,6 +151,18 @@ var WreckPost = async function (server, opts) {
   })
 }
 
+var WreckPut = async function (server, opts) {
+  var params = WreckProxy(server, opts)
+
+  return new Promise((resolve, reject) => {
+    wreck.put(params.server, params.opts, (err, response, body) => {
+      if (err) return reject(err)
+
+      resolve(body)
+    })
+  })
+}
+
 var WreckPatch = async function (server, opts) {
   var params = WreckProxy(server, opts)
 
@@ -163,6 +175,6 @@ var WreckPatch = async function (server, opts) {
   })
 }
 
-exports.wreck = { get: WreckGet, patch: WreckPatch, post: WreckPost }
+exports.wreck = { get: WreckGet, patch: WreckPatch, post: WreckPost, put: WreckPut }
 
 module.exports = exports

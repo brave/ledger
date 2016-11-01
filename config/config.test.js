@@ -16,6 +16,10 @@ module.exports =
     }
   , coinbase            :
     { widgetCode        : '' }
+  , bitcoin_average     :
+    { publicKey         : ''
+    , secretKey         : ''
+    }
   }
 , slack                 :
   { webhook             : process.env.SLACK_WEBHOOK
