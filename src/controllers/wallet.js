@@ -272,21 +272,13 @@ v1.validate =
    PUT /v1/address/{address}/validate
  */
 
-/*
-{
-  "ledgerAddress": "3F3Z7m3PuHoqjJn7pAZH5KLLQZSaEAajqM",
-  "actor": "authorize.stripe",
-  "transactionId": "ch_19B2MHFVLz398SRTPTxmXDzV",
-  "amount": 1000,
-  "currency": "usd"
-}
-verify transaction with actor
-record address, amount, description
-generate instructions for bitgo
- */
 v1.populate =
 { handler: function (runtime) {
   return async function (request, reply) {
+/*
+TODO: verify transaction with actor
+ */
+
     var wallet
     var debug = braveHapi.debug(module, request)
     var address = request.params.address
@@ -295,8 +287,8 @@ v1.populate =
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
-    runtime.notify(debug, { text: JSON.stringify(request.payload) })
-    debug('populate', request.payload)
+    await runtime.queue.send(debug, 'population-report',
+                             underscore.extend({ paymentId: wallet.paymentId, address: address }, request.payload))
     reply({})
   }
 },
