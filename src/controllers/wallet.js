@@ -295,6 +295,7 @@ v1.populate =
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
+    debug('populate', request.payload)
     reply({})
   }
 },
