@@ -22,8 +22,8 @@ var Wallet = function (config, runtime) {
   if (!onceonlyP) {
     onceonlyP = true
 
-    maintenance(this.config)
-    setInterval(function () { maintenance(this.config) }, 5 * 60 * 1000)
+    maintenance(this.config, this.runtime)
+    setInterval(function () { maintenance(this.config, this.runtime) }, 5 * 60 * 1000)
   }
 }
 
@@ -115,7 +115,7 @@ var schema = Joi.object({}).pattern(/timestamp|[A-Z][A-Z][A-Z]/,
                                                            Joi.object().keys({ last: Joi.number().positive() }).unknown(true)))
                 .required()
 
-var maintenance = async function (config) {
+var maintenance = async function (config, runtime) {
   var rates, result, validity
   var timestamp = Math.round(underscore.now() / 1000)
   var prefix = timestamp + '.' + config.bitcoin_average.publicKey
@@ -141,6 +141,7 @@ var maintenance = async function (config) {
     debug('BTC key rates', underscore.pick(rates, [ 'USD', 'EUR', 'GBP' ]))
   } catch (ex) {
     debug('maintenance error', ex)
+    runtime.notify(debug, { text: 'maintenance error: ' + ex.toString() })
   }
 }
 

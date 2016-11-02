@@ -1,7 +1,7 @@
 var debug = new (require('sdebug'))('queue')
 var underscore = require('underscore')
 
-var Queue = function (config) {
+var Queue = function (config, runtime) {
   if (!(this instanceof Queue)) return new Queue(config)
 
   if (!config.queue) throw new Error('config.queue undefined')
@@ -12,10 +12,14 @@ var Queue = function (config) {
     config.queue = { client: require('redis').createClient(config.queue) }
   }
   this.rsmq = new (require('rsmq'))(config.queue)
+  this.runtime = runtime
 
   this.rsmq.on('connect', function () { debug('redis connect') })
     .on('disconnect', function () { debug('redis disconnect') })
-    .on('error', function (err) { debug('redis error', err) })
+    .on('error', function (err) {
+      debug('redis error', err)
+      this.runtime.notify(debug, { text: 'redis error: ' + err.toString() })
+    })
 }
 
 Queue.prototype.create = async function (name) {
@@ -130,6 +134,12 @@ Queue.prototype.listen = function (name, callback) {
                 }
   var worker = new (require('rsmq-worker'))(name, options)
 
+  var oops = function (message, err) {
+    debug(message, err)
+    if (err) message += ', ' + err.toString()
+    this.runtime.notify(debug, { text: message })
+  }
+
   worker.on('message', function (message, next, id) {
     var payload
     var rsp = { id: id, message: message }
@@ -148,9 +158,9 @@ Queue.prototype.listen = function (name, callback) {
     return next()
   })
 
-  worker.on('error', function (err, msg) { debug('redis error: id=' + msg.id, err) })
-    .on('exceeded', function (msg) { debug('redis exceeded: id=' + msg.id) })
-    .on('timeout', function (msg) { debug('redis timeout: id=' + msg.id + ' rc=' + msg.rc) })
+  worker.on('error', function (err, msg) { oops('redis error: id=' + msg.id, err) })
+    .on('exceeded', function (msg) { oops('redis exceeded: id=' + msg.id) })
+    .on('timeout', function (msg) { oops('redis timeout: id=' + msg.id + ' rc=' + msg.rc) })
 
   worker.start()
 }

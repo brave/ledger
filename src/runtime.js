@@ -24,9 +24,9 @@ underscore.keys(config).forEach((key) => {
 var runtime = {
   config: config,
   db: new DB(config),
-  login: config.login,
-  queue: new Queue(config)
+  login: config.login
 }
+runtime.queue = new Queue(config, runtime)
 if (runtime.config.slack && runtime.config.slack.webhook) runtime.slack = new Slack(runtime.config.slack.webhook)
 runtime.wallet = new Wallet(config, runtime)
 

@@ -83,7 +83,7 @@ TODO: verify transaction with actor
       { actor: Joi.string().required().description('authorization agent'),
         transactionId: Joi.string().required().description('transaction-identifier'),
         amount: Joi.number().min(5).optional().description('the payment amount in fiat currency'),
-        currency: braveJoi.string().currencyCode().optional().default('USD').description('the payment currency')
+        currency: braveJoi.string().currencyCode().optional().default('USD').description('the fiat currency')
       }
     },
 

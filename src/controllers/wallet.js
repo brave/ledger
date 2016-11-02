@@ -67,9 +67,9 @@ v1.read =
 
   validate:
     { params: { paymentId: Joi.string().guid().required().description('identity of the wallet') },
-      query: { amount: Joi.number().positive().optional().description('the payment amount'),
+      query: { amount: Joi.number().positive().optional().description('the payment amount in the fiat currency'),
                balance: Joi.boolean().optional().default(false).description('return balance information'),
-               currency: braveJoi.string().currencyCode().optional().description('the payment currency'),
+               currency: braveJoi.string().currencyCode().optional().description('the fiat currency'),
                refresh: Joi.boolean().optional().default(false).description('return balance and transaction information')
              }
     },
