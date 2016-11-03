@@ -4,6 +4,7 @@ var braveJoi = require('../brave-joi')
 var bson = require('bson')
 var Joi = require('joi')
 var stripe
+var underscore = require('underscore')
 
 var v1 = {}
 
@@ -83,10 +84,8 @@ v1.populate =
       return reply(boom.badData('amount/currency mismatch'))
     }
 
-/*
     await runtime.queue.send(debug, 'population-report',
                              underscore.extend({ paymentId: wallet.paymentId, address: address }, request.payload))
- */
     reply({})
   }
 },
