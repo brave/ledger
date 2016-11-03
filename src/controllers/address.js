@@ -3,7 +3,7 @@ var braveHapi = require('../brave-hapi')
 var braveJoi = require('../brave-joi')
 var bson = require('bson')
 var Joi = require('joi')
-var underscore = require('underscore')
+var stripe
 
 var v1 = {}
 
@@ -47,23 +47,46 @@ v1.validate =
    PUT /v1/address/{address}/validate
  */
 
+// currently hard-coded to stripe
+
+var retrieveCharge = async function (actor, chargeId) {
+  return new Promise((resolve, reject) => {
+    if (actor !== 'authorize.stripe') reject(new Error('invalid result.actor'))
+
+    stripe.charges.retrieve(chargeId, (err, charge) => {
+      if (err) return reject(err)
+
+      charge.amount = (charge.amount / 100).toFixed(2)
+      charge.currency = charge.currency.toUpperCase()
+      resolve(charge)
+    })
+  })
+}
+
 v1.populate =
 { handler: function (runtime) {
   return async function (request, reply) {
-/*
-TODO: verify transaction with actor
- */
-
-    var wallet
+    var result, wallet
     var debug = braveHapi.debug(module, request)
     var address = request.params.address
+    var actor = request.payload.actor
+    var amount = request.payload.amount
+    var currency = request.payload.currency
+    var transactionId = request.payload.transactionId
     var wallets = runtime.db.get('wallets', debug)
 
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
+    try { result = await retrieveCharge(actor, transactionId) } catch (ex) { reply(boom.badData(ex.toString())) }
+    if ((result.amount !== amount.toString()) || (result.currency !== currency)) {
+      return reply(boom.badData('amount/currency mismatch'))
+    }
+
+/*
     await runtime.queue.send(debug, 'population-report',
                              underscore.extend({ paymentId: wallet.paymentId, address: address }, request.payload))
+ */
     reply({})
   }
 },
@@ -82,8 +105,8 @@ TODO: verify transaction with actor
       payload:
       { actor: Joi.string().required().description('authorization agent'),
         transactionId: Joi.string().required().description('transaction-identifier'),
-        amount: Joi.number().min(5).optional().description('the payment amount in fiat currency'),
-        currency: braveJoi.string().currencyCode().optional().default('USD').description('the fiat currency')
+        amount: Joi.number().min(5).required().description('the payment amount in fiat currency'),
+        currency: braveJoi.string().currencyCode().required().default('USD').description('the fiat currency')
       }
     },
 
@@ -97,6 +120,8 @@ module.exports.routes = [
 ]
 
 module.exports.initialize = async function (debug, runtime) {
+  stripe = require('stripe')(runtime.config.payments.stripe.secretKey)
+
   runtime.db.checkIndices(debug,
   [ { category: runtime.db.get('wallets', debug),
       name: 'wallets',

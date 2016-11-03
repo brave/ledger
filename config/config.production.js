@@ -19,6 +19,10 @@ module.exports =
     , secretKey         : process.env.BITCOIN_AVERAGE_SECRET_KEY
     }
   }
+, payments              :
+  { stripe              :
+    { secretKey         : process.env.STRIPE_SECRET_KEY }
+  }
 , slack                 :
   { webhook             : process.env.SLACK_WEBHOOK
   , channel             : process.env.SLACK_CHANNEL

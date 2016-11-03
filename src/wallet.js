@@ -23,7 +23,7 @@ var Wallet = function (config, runtime) {
     onceonlyP = true
 
     maintenance(this.config, this.runtime)
-    setInterval(function () { maintenance(this.config, this.runtime) }, 5 * 60 * 1000)
+    setInterval(function () { maintenance(this.config, this.runtime) }.bind(this), 5 * 60 * 1000)
   }
 }
 
