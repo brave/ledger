@@ -23,7 +23,7 @@ var Wallet = function (config, runtime) {
     onceonlyP = true
 
     maintenance(this.config, this.runtime)
-    setInterval(function () { maintenance(this.config, this.runtime) }.bind(this), 5 * 60 * 1000)
+    setInterval(function () { maintenance(this.config, this.runtime) }.bind(this), 15 * 60 * 1000)
   }
 }
 
@@ -116,14 +116,18 @@ var schema = Joi.object({}).pattern(/timestamp|[A-Z][A-Z][A-Z]/,
                 .required()
 
 var maintenance = async function (config, runtime) {
-  var rates, result, validity
+  var rates, result, signature, url, validity
   var timestamp = Math.round(underscore.now() / 1000)
   var prefix = timestamp + '.' + config.bitcoin_average.publicKey
   var suffix = crypto.createHmac('sha256', config.bitcoin_average.secretKey).update(prefix).digest('hex')
 
   try {
-    result = await braveHapi.wreck.get('https://apiv2.bitcoinaverage.com/indices/global/ticker/all?crypto=BTC',
-                                       { headers: { 'x-signature': prefix + '.' + suffix } })
+    url = 'https://apiv2.bitcoinaverage.com/indices/global/ticker/all?crypto=BTC'
+    signature = prefix + '.' + suffix
+    result = await braveHapi.wreck.get(url, { headers: { 'x-signature': signature } })
+    if (Buffer.isBuffer(result)) result = result.toString()
+// courtesy of https://stackoverflow.com/questions/822452/strip-html-from-text-javascript#822464
+    if (result.indexOf('<html>') !== -1) throw new Error(result.replace(/<(?:.|\n)*?>/gm, ''))
     result = JSON.parse(result)
     validity = Joi.validate(result, schema)
     if (validity.error) throw new Error(validity.error)
@@ -141,6 +145,8 @@ var maintenance = async function (config, runtime) {
     debug('BTC key rates', underscore.pick(rates, [ 'USD', 'EUR', 'GBP' ]))
   } catch (ex) {
     debug('maintenance error', ex)
+    debug('maintenance details', 'curl -X GET --header "X-Signature: ' + signature + '" ' + url)
+
     runtime.notify(debug, { text: 'maintenance error: ' + ex.toString() })
   }
 }

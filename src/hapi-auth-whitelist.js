@@ -20,7 +20,7 @@ const internals = {
 }
 
 exports.authenticate = (request, reply) => {
-  var ipaddr = (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(', ')[0]
+  var ipaddr = (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(',')[0].trim()
 
   if ((authorizedAddrs) &&
         (authorizedAddrs.indexOf(ipaddr) === -1) &&
