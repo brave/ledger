@@ -104,6 +104,7 @@ v1.populate =
       payload:
       { actor: Joi.string().required().description('authorization agent'),
         transactionId: Joi.string().required().description('transaction-identifier'),
+        fee: Joi.number().min(0).required().description('the processing fee in fiat currency'),
         amount: Joi.number().min(5).required().description('the payment amount in fiat currency'),
         currency: braveJoi.string().currencyCode().required().default('USD').description('the fiat currency')
       }
