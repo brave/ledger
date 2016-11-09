@@ -50,15 +50,15 @@ v1.validate =
 
 // currently hard-coded to stripe
 
-var retrieveCharge = async function (actor, chargeId) {
+var retrieveCharge = async function (debug, actor, chargeId) {
   return new Promise((resolve, reject) => {
     if (actor !== 'authorize.stripe') return reject(new Error('invalid result.actor'))
 
     stripe.charges.retrieve(chargeId, (err, charge) => {
       if (err) return reject(err)
 
-      console.log(JSON.stringify(charge, null, 2))
-//    if (charge.amount.indexOf('.') === -1) charge.amount = (charge.amount / 100).toFixed(2)
+      debug('retrieve', charge)
+      charge.amount = (charge.amount / 100).toFixed(2)
       charge.currency = charge.currency.toUpperCase()
       resolve(charge)
     })
@@ -81,8 +81,7 @@ v1.populate =
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
-    try { result = await retrieveCharge(actor, transactionId) } catch (ex) { reply(boom.badData(ex.toString())) }
-    debug('populate', result)
+    try { result = await retrieveCharge(debug, actor, transactionId) } catch (ex) { reply(boom.badData(ex.toString())) }
     if ((result.amount !== amount.toString()) || (result.currency !== currency)) {
       return reply(boom.badData('amount/currency mismatch: server=' + result.amount + '/' + result.currency + ' vs. client=' +
                                 amount.toString() + '/' + currency))
