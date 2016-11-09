@@ -57,7 +57,8 @@ var retrieveCharge = async function (actor, chargeId) {
     stripe.charges.retrieve(chargeId, (err, charge) => {
       if (err) return reject(err)
 
-      if (charge.amount.indexOf('.') === -1) charge.amount = (charge.amount / 100).toFixed(2)
+      console.log(JSON.stringify(charge, null, 2))
+//    if (charge.amount.indexOf('.') === -1) charge.amount = (charge.amount / 100).toFixed(2)
       charge.currency = charge.currency.toUpperCase()
       resolve(charge)
     })
