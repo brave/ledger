@@ -82,6 +82,7 @@ v1.populate =
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
     try { result = await retrieveCharge(actor, transactionId) } catch (ex) { reply(boom.badData(ex.toString())) }
+    debug('populate', result)
     if ((result.amount !== amount.toString()) || (result.currency !== currency)) {
       return reply(boom.badData('amount/currency mismatch'))
     }
