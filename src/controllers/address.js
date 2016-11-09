@@ -73,6 +73,7 @@ v1.populate =
     var actor = request.payload.actor
     var amount = request.payload.amount
     var currency = request.payload.currency
+    var fee = request.payload.fee
     var transactionId = request.payload.transactionId
     var wallets = runtime.db.get('wallets', debug)
 
@@ -83,6 +84,7 @@ v1.populate =
     if ((result.amount !== amount.toString()) || (result.currency !== currency)) {
       return reply(boom.badData('amount/currency mismatch'))
     }
+    if (amount <= fee) return reply(boom.badData('amount/fee mismatch'))
 
     await runtime.queue.send(debug, 'population-report',
                              underscore.extend({ paymentId: wallet.paymentId, address: address }, request.payload))
