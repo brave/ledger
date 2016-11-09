@@ -50,7 +50,7 @@ v1.validate =
 
 // currently hard-coded to stripe
 
-var retrieveCharge = async function (debug, actor, chargeId) {
+var compareCharge = async function (debug, actor, chargeId, amount, currency) {
   return new Promise((resolve, reject) => {
     if (actor !== 'authorize.stripe') return reject(new Error('invalid result.actor'))
 
@@ -60,7 +60,11 @@ var retrieveCharge = async function (debug, actor, chargeId) {
       debug('retrieve', charge)
       charge.amount = (charge.amount / 100).toFixed(2)
       charge.currency = charge.currency.toUpperCase()
-      resolve(charge)
+
+      if ((charge.amount === amount.toFixed(2)) && (charge.currency === currency)) return resolve()
+
+      resolve('amount/currency mismatch: server=' + charge.amount + '/' + charge.currency + ' vs. client=' + amount + '/' +
+              currency)
     })
   })
 }
@@ -81,10 +85,12 @@ v1.populate =
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
-    try { result = await retrieveCharge(debug, actor, transactionId) } catch (ex) { reply(boom.badData(ex.toString())) }
-    if ((result.amount !== amount.toString()) || (result.currency !== currency)) {
-      return reply(boom.badData('amount/currency mismatch: server=' + result.amount + '/' + result.currency + ' vs. client=' +
-                                amount.toString() + '/' + currency))
+    try {
+      result = await compareCharge(debug, actor, transactionId, amount, currency)
+      if (result) return reply(boom.badData(result))
+    } catch (ex) {
+      debug('retrieve', ex)
+      return boom.badGateway(ex.toString())
     }
     if (amount <= fee) return reply(boom.badData('amount/fee mismatch'))
 
