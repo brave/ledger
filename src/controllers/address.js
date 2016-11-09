@@ -52,12 +52,12 @@ v1.validate =
 
 var retrieveCharge = async function (actor, chargeId) {
   return new Promise((resolve, reject) => {
-    if (actor !== 'authorize.stripe') reject(new Error('invalid result.actor'))
+    if (actor !== 'authorize.stripe') return reject(new Error('invalid result.actor'))
 
     stripe.charges.retrieve(chargeId, (err, charge) => {
       if (err) return reject(err)
 
-      charge.amount = (charge.amount / 100).toFixed(2)
+      if (charge.amount.indexOf('.') === -1) charge.amount = (charge.amount / 100).toFixed(2)
       charge.currency = charge.currency.toUpperCase()
       resolve(charge)
     })
@@ -75,7 +75,6 @@ v1.populate =
     var currency = request.payload.currency
     var fee = request.payload.fee
     var transactionId = request.payload.transactionId
-    var rate = runtime.wallet.rates[currency.toUpperCase()]
     var wallets = runtime.db.get('wallets', debug)
 
     wallet = await wallets.findOne({ address: address })
@@ -84,7 +83,8 @@ v1.populate =
     try { result = await retrieveCharge(actor, transactionId) } catch (ex) { reply(boom.badData(ex.toString())) }
     debug('populate', result)
     if ((result.amount !== amount.toString()) || (result.currency !== currency)) {
-      return reply(boom.badData('amount/currency mismatch'))
+      return reply(boom.badData('amount/currency mismatch: server=' + result.amount + '/' + result.currency + ' vs. client=' +
+                                amount.toString() + '/' + currency))
     }
     if (amount <= fee) return reply(boom.badData('amount/fee mismatch'))
 
