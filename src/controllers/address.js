@@ -72,7 +72,7 @@ var compareCharge = async function (debug, actor, chargeId, amount, currency) {
 v1.populate =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var result, satoshis, wallet
+    var rate, result, satoshis, wallet
     var debug = braveHapi.debug(module, request)
     var address = request.params.address
     var actor = request.payload.actor
@@ -94,6 +94,8 @@ v1.populate =
     }
     if (amount <= fee) return reply(boom.badData('amount/fee mismatch'))
 
+    rate = runtime.wallet.rates[currency.toUpperCase()]
+    satoshis = Math.round((amount / rate) * 1e8)
     await runtime.queue.send(debug, 'population-report',
                              underscore.extend({ paymentId: wallet.paymentId, address: address, satoshis: satoshis },
                              request.payload))
@@ -122,7 +124,7 @@ v1.populate =
     },
 
   response:
-    { schema: { satoshis: Joi.number().integer().min(0).optional().description('the populated amount in satoshis') } }
+    { schema: { satoshis: Joi.number().integer().min(0).description('the populated amount in satoshis') } }
 }
 
 module.exports.routes = [
