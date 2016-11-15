@@ -58,6 +58,11 @@ var compareCharge = async function (debug, actor, chargeId, amount, currency) {
       if (err) return reject(err)
 
       debug('retrieve', charge)
+      if ((charge.object !== 'charge') || (charge.amount_refunded !== 0) || (charge.refunded) || (!charge.paid) ||
+          (charge.status !== 'succeeded')) {
+        return resolve('invalid charge')
+      }
+
       charge.amount = (charge.amount / 100).toFixed(2)
       charge.currency = charge.currency.toUpperCase()
 

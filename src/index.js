@@ -227,8 +227,7 @@ var main = async function (id) {
     debug('webserver started',
           underscore.extend({ server: url.format(runtime.config.server), version: server.version },
                             server.info,
-                            { env: underscore.pick(process.env, [ 'BITGO_CUSTOM_ROOT_URI', 'BITGO_ENVIRONMENT', 'DEBUG',
-                                                                  'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ]) }))
+                            { env: underscore.pick(process.env, [ 'DEBUG', 'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ]) }))
     runtime.npminfo = underscore.pick(npminfo, 'name', 'version', 'description', 'author', 'license', 'bugs', 'homepage')
     runtime.npminfo.children = {}
     runtime.notify(debug, { text: require('os').hostname() + ' ' + npminfo.name + '@' + npminfo.version +
