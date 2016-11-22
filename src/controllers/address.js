@@ -129,7 +129,7 @@ v1.populate =
     },
 
   response:
-    { schema: { satoshis: Joi.number().integer().min(0).description('the populated amount in satoshis') } }
+    { schema: { satoshis: Joi.number().integer().min(0).required().description('the populated amount in satoshis') } }
 }
 
 module.exports.routes = [
