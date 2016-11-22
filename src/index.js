@@ -198,6 +198,12 @@ var main = async function (id) {
   server.route({ method: 'GET', path: '/favicon.ico', handler: { file: './documentation/favicon.ico' } })
   server.route({ method: 'GET', path: '/favicon.png', handler: { file: './documentation/favicon.png' } })
   server.route({ method: 'GET', path: '/robots.txt', handler: { file: './documentation/robots.txt' } })
+  if (process.env.ACME_CHALLENGE) {
+    server.route({ method: 'GET',
+                   path: '/.well-known/acme-challenge/' + process.env.ACME_CHALLENGE.split('.')[0],
+                   handler: function (request, reply) { reply(process.env.ACME_CHALLENGE) }
+                 })
+  }
 
   server.start((err) => {
     var children = {}
