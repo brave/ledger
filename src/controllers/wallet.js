@@ -16,7 +16,7 @@ var v1 = {}
 v1.read =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var balances, result, state, wallet
+    var balances, expires, result, state, wallet
     var amount = request.query.amount
     var balanceP = request.query.balance
     var currency = request.query.currency
@@ -31,6 +31,12 @@ v1.read =
     result = { paymentStamp: wallet.paymentStamp || 0,
                rates: currency ? underscore.pick(runtime.wallet.rates, [ currency.toUpperCase() ]) : runtime.wallet.rates
              }
+    if ((balanceP) && (!refreshP)) {
+      expires = ((wallet.timestamp.high_ + (5 * 60)) * 1000) + (wallet.timestamp.low_ / bson.Timestamp.TWO_PWR_32_DBL_)
+      if (expires > underscore.now()) balanceP = false
+      debug('balance', 'cache ' + (balanceP ? 'expired' : 'valid'))
+    }
+
     if (balanceP || refreshP) {
       balances = await runtime.wallet.balances(wallet)
 
