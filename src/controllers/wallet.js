@@ -34,7 +34,7 @@ v1.read =
     if ((balanceP) && (!refreshP)) {
       expires = ((wallet.timestamp.high_ + (5 * 60)) * 1000) + (wallet.timestamp.low_ / bson.Timestamp.TWO_PWR_32_DBL_)
       if (expires > underscore.now()) balanceP = false
-      debug('balance', 'cache ' + (balanceP ? 'expired' : 'valid'))
+      debug('balance', 'cache ' + (balanceP ? 'expired' : 'valid') + ' ' + wallet.timestamp.high_ + '.' + wallet.timestamp.low_)
     }
 
     if (balanceP || refreshP) {
