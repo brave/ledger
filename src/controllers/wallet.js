@@ -32,7 +32,7 @@ v1.read =
                rates: currency ? underscore.pick(runtime.wallet.rates, [ currency.toUpperCase() ]) : runtime.wallet.rates
              }
     if ((balanceP) && (!refreshP)) {
-      expires = (wallet.timestamp.high_ + (15 * 60)) * 1000
+      expires = (wallet.timestamp.high_ + (24 * 60 * 60)) * 1000
       if (expires > underscore.now()) balanceP = false
     }
 
