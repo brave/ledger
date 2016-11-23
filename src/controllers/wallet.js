@@ -31,15 +31,16 @@ v1.read =
     result = { paymentStamp: wallet.paymentStamp || 0,
                rates: currency ? underscore.pick(runtime.wallet.rates, [ currency.toUpperCase() ]) : runtime.wallet.rates
              }
+/*
     if ((balanceP) && (!refreshP)) {
       expires = (wallet.timestamp.high_ + (24 * 60 * 60)) * 1000
       if (expires > underscore.now()) balanceP = false
     }
+ */
 
-    if (balanceP || refreshP) {
+    if (/* balanceP || */ refreshP) {
       balances = await runtime.wallet.balances(wallet)
 
-      if (!refreshP) debug('balance', 'cache ' + ((!underscore.isEqual(balances, wallet.balances)) ? ' stale' : ' fresh'))
       if (!underscore.isEqual(balances, wallet.balances)) {
         state = { $currentDate: { timestamp: { $type: 'timestamp' } },
                   $set: { balances: balances }
