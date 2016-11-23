@@ -16,9 +16,11 @@ var v1 = {}
 v1.read =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var balances, expires, result, state, wallet
+    var balances, result, state, wallet
     var amount = request.query.amount
+/*  var expires
     var balanceP = request.query.balance
+ */
     var currency = request.query.currency
     var debug = braveHapi.debug(module, request)
     var paymentId = request.params.paymentId.toLowerCase()

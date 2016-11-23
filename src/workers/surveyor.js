@@ -18,16 +18,20 @@ var daily = async function (debug, runtime) {
   entries.forEach(async function (entry) {
     var payload, surveyor, validity
 
-    if (entry.timestamp.high_ >= midnight) return
+    if (entry.timestamp.high_ >= midnight) return debug('daily', { midnight: midnight, timestamp: entry.timestamp.high_ })
 
-    validity = utilities.validate(surveyorType, entry.payload)
-    if (validity.error) return debug('daily', 'unable to create surveyorType=' + surveyorType + ': ' + validity.error)
+    try {
+      validity = utilities.validate(surveyorType, entry.payload)
+      if (validity.error) return debug('daily', 'unable to create surveyorType=' + surveyorType + ': ' + validity.error)
 
-    payload = utilities.enumerate(runtime, surveyorType, entry.payload)
-    if (!payload) return debug('daily', 'no available currencies' + JSON.stringify(entry.payload))
+      payload = utilities.enumerate(runtime, surveyorType, entry.payload)
+      if (!payload) return debug('daily', 'no available currencies' + JSON.stringify(entry.payload))
 
-    surveyor = await utilities.create(debug, runtime, surveyorType, payload)
-    if (!surveyor) return debug('daily', 'unable to create surveyorType=' + surveyorType)
+      surveyor = await utilities.create(debug, runtime, surveyorType, payload)
+      if (!surveyor) return debug('daily', 'unable to create surveyorType=' + surveyorType)
+    } catch (ex) {
+      return debug('daily', 'error ' + ex.toString() + ' ' + ex.stack)
+    }
 
     debug('daily', 'created ' + surveyorType + ' surveyorID=' + surveyor.surveyorId)
   })
