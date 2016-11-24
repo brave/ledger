@@ -1,24 +1,20 @@
+var cron = require('cron-parser')
 var moment = require('moment')
 var underscore = require('underscore')
 var utilities = require('../controllers/surveyor.js')
 
+var interval
+
 var daily = async function (debug, runtime) {
-  var entries, midnight, tomorrow
-  var now = underscore.now()
+  var entries, next
   var surveyorType = 'contribution'
   var surveyors = runtime.db.get('surveyors', debug)
 
   debug('daily', 'running')
 
-  midnight = new Date(now)
-  midnight.setHours(0, 0, 0, 0)
-  midnight = Math.floor(midnight.getTime() / 1000)
-
   entries = await surveyors.find({ surveyorType: surveyorType, active: true }, { limit: 100, sort: { timestamp: -1 } })
   entries.forEach(async function (entry) {
     var payload, surveyor, validity
-
-    if (entry.timestamp.high_ >= midnight) return debug('daily', { midnight: midnight, timestamp: entry.timestamp.high_ })
 
     try {
       validity = utilities.validate(surveyorType, entry.payload)
@@ -36,18 +32,41 @@ var daily = async function (debug, runtime) {
     debug('daily', 'created ' + surveyorType + ' surveyorID=' + surveyor.surveyorId)
   })
 
-  tomorrow = new Date(now)
-  tomorrow.setHours(24, 0, 0, 0)
-  setTimeout(function () { daily(debug, runtime) }, tomorrow - now)
-  debug('daily', 'running again ' + moment(tomorrow).fromNow())
+  next = interval.next().getTime()
+  setTimeout(function () { daily(debug, runtime) }, next - underscore.now())
+  debug('daily', 'running again ' + moment(next).fromNow())
 }
 
 var exports = {}
 
 exports.initialize = async function (debug, runtime) {
-  if ((typeof process.env.DYNO === 'undefined') || (process.env.DYNO === 'worker.1')) {
-    setTimeout(function () { daily(debug, runtime) }, 5 * 1000)
-  }
+  var next, schedule
+
+  if ((typeof process.env.DYNO !== 'undefined') && (process.env.DYNO !== 'worker.1')) return
+
+  await require('../controllers/registrar.js').initialize(debug, runtime)
+  await utilities.initialize(debug, runtime)
+
+/* from https://github.com/harrisiirak/cron-parser
+
+*    *    *    *    *    *
+┬    ┬    ┬    ┬    ┬    ┬
+│    │    │    │    │    |
+│    │    │    │    │    └ day of week (0 - 7) (0 or 7 is Sun)
+│    │    │    │    └───── month (1 - 12)
+│    │    │    └────────── day of month (1 - 31)
+│    │    └─────────────── hour (0 - 23)
+│    └──────────────────── minute (0 - 59)
+└───────────────────────── second (0 - 59, optional)
+
+ */
+
+  schedule = process.env.SURVEYOR_CRON_SCHEDULE || '0 0 0 * * 0,3,5'
+
+  interval = cron.parseExpression(schedule, { })
+  next = interval.next().getTime()
+  setTimeout(function () { daily(debug, runtime) }, next - underscore.now())
+  debug('daily', 'running ' + moment(next).fromNow())
 }
 
 exports.workers = {

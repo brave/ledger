@@ -36,6 +36,7 @@
     "crumb": "6.0.0",
     "cryptiles": "3.0.0",
     "country-list": "1.0.0",
+    "cron-parser": "2.2.1",
     "currency-codes": "1.1.2",
     "github": "0.2.4",
     "gridfs-stream": "1.1.1",
