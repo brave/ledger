@@ -2,7 +2,7 @@ var braveHapi = require('../brave-hapi')
 var bson = require('bson')
 var Joi = require('joi')
 var underscore = require('underscore')
-var uuid = require('node-uuid')
+var uuid = require('uuid')
 
 var v1 = {}
 
