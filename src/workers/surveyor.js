@@ -29,6 +29,8 @@ var daily = async function (debug, runtime) {
       return debug('daily', 'error ' + ex.toString() + ' ' + ex.stack)
     }
 
+    runtime.notify(debug, { channel: '#ledger-bot',
+                            text: JSON.stringify(underscore.pick(surveyor, [ 'surveyorId', 'surveyorType', 'payload' ])) })
     debug('daily', 'created ' + surveyorType + ' surveyorID=' + surveyor.surveyorId)
   })
 
