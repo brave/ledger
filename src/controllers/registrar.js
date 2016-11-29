@@ -217,7 +217,7 @@ v1.create =
   validate:
     { params:
       { registrarType: Joi.string().valid('persona', 'viewing').required().description('the type of the registrar'),
-        uId: Joi.string().length(31).required().description('the universally-unique identifier')
+        uId: Joi.string().hex().length(31).required().description('the universally-unique identifier')
       },
       payload: Joi.object(
         { proof: Joi.string().required().description('credential registration request')

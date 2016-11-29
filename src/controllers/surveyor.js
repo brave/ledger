@@ -291,7 +291,7 @@ v1.phase1 =
     { params:
       { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
         surveyorId: Joi.string().required().description('the identity of the surveyor'),
-        uId: Joi.string().length(31).required().description('the universally-unique identifier')
+        uId: Joi.string().hex().length(31).required().description('the universally-unique identifier')
       }
     },
 
