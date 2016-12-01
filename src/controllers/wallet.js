@@ -168,6 +168,7 @@ v1.write =
     reply(result)
 
     await runtime.queue.send(debug, 'contribution-report', underscore.extend({ paymentId: paymentId,
+                                                                               address: wallet.address,
                                                                                surveyorId: surveyorId,
                                                                                viewingId: viewingId,
                                                                                fee: fee }, result))
