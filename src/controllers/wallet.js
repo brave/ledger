@@ -18,9 +18,7 @@ v1.read =
   return async function (request, reply) {
     var balances, result, state, wallet
     var amount = request.query.amount
-/*  var expires
     var balanceP = request.query.balance
- */
     var currency = request.query.currency
     var debug = braveHapi.debug(module, request)
     var paymentId = request.params.paymentId.toLowerCase()
@@ -33,14 +31,8 @@ v1.read =
     result = { paymentStamp: wallet.paymentStamp || 0,
                rates: currency ? underscore.pick(runtime.wallet.rates, [ currency.toUpperCase() ]) : runtime.wallet.rates
              }
-/*
-    if ((balanceP) && (!refreshP)) {
-      expires = (wallet.timestamp.high_ + (24 * 60 * 60)) * 1000
-      if (expires > underscore.now()) balanceP = false
-    }
- */
 
-    if (/* balanceP || */ refreshP) {
+    if ((refreshP) || (balanceP && !wallet.balances)) {
       balances = await runtime.wallet.balances(wallet)
 
       if (!underscore.isEqual(balances, wallet.balances)) {
