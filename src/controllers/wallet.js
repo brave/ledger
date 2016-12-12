@@ -59,10 +59,12 @@ v1.read =
       if (refreshP) {
         result.unsignedTx = await runtime.wallet.unsignedTx(wallet, amount, currency, balances.confirmed)
 
-        state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                  $set: { unsignedTx: result.unsignedTx }
-                }
-        await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+        if (result.unsignedTx) {
+          state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+                    $set: { unsignedTx: result.unsignedTx }
+                  }
+          await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+        }
       }
     }
 
