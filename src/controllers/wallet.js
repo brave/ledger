@@ -120,8 +120,11 @@ v1.write =
     if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
 
     try {
-      if ((wallet.unsignedTx) && (!runtime.wallet.compareTx(wallet.unsignedTx, signedTx))) {
-        runtime.notify(debug, { channel: '#ledger-bot', text: 'comparison check on paymentId ' + paymentId })
+      if (wallet.unsignedTx) {
+        runtime.notify(debug, { channel: '#ledger-bot',
+                                text: 'comparison check on paymentId ' + paymentId + ' = ' +
+                                      runtime.wallet.compareTx(wallet.unsignedTx, signedTx)
+                              })
       }
     } catch (ex) {
       debug('compareTx', ex)
