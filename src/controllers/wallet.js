@@ -61,7 +61,7 @@ v1.read =
 
         if (result.unsignedTx) {
           state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                    $set: { unsignedTx: result.unsignedTx }
+                    $set: { unsignedTx: result.unsignedTx.transactionHex }
                   }
           await wallets.update({ paymentId: paymentId }, state, { upsert: true })
         }
