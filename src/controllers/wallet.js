@@ -119,8 +119,13 @@ v1.write =
     wallet = await wallets.findOne({ paymentId: paymentId })
     if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
 
-    if ((wallet.unsignedTx) && (!runtime.wallet.compareTx(wallet.unsignedTx, signedTx))) {
-      runtime.notify(debug, { channel: '#ledger-bot', text: 'comparison check on paymentId ' + paymentId })
+    try {
+      if ((wallet.unsignedTx) && (!runtime.wallet.compareTx(wallet.unsignedTx, signedTx))) {
+        runtime.notify(debug, { channel: '#ledger-bot', text: 'comparison check on paymentId ' + paymentId })
+      }
+    } catch (ex) {
+      debug('compareTx', ex)
+      runtime.notify(debug, { channel: '#ledger-bot', text: 'comparison error on paymentId ' + paymentId })
     }
 
     surveyor = await surveyors.findOne({ surveyorId: surveyorId })
