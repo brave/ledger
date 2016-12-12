@@ -56,7 +56,14 @@ v1.read =
     if ((amount) && (currency)) {
       underscore.extend(result, runtime.wallet.purchaseBTC(wallet, amount, currency))
       underscore.extend(result, runtime.wallet.recurringBTC(wallet, amount, currency))
-      if (refreshP) result.unsignedTx = await runtime.wallet.unsignedTx(wallet, amount, currency, balances.confirmed)
+      if (refreshP) {
+        result.unsignedTx = await runtime.wallet.unsignedTx(wallet, amount, currency, balances.confirmed)
+
+        state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+                  $set: { unsignedTx: result.unsignedTx }
+                }
+        await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+      }
     }
 
     reply(result)
@@ -109,6 +116,10 @@ v1.write =
 
     wallet = await wallets.findOne({ paymentId: paymentId })
     if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
+
+    if ((wallet.unsignedTx) && (!runtime.wallet.compareTx(wallet.unsignedTx, signedTx))) {
+      runtime.notify(debug, { channel: '#ledger-bot', text: 'comparison check on paymentId ' + paymentId })
+    }
 
     surveyor = await surveyors.findOne({ surveyorId: surveyorId })
     if (!surveyor) return reply(boom.notFound('no such surveyor: ' + surveyorId))

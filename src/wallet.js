@@ -1,3 +1,4 @@
+var bitcoinjs = require('bitcoinjs-lib')
 var braveHapi = require('./brave-hapi')
 var crypto = require('crypto')
 var debug = new (require('sdebug'))('wallet')
@@ -92,6 +93,23 @@ Wallet.prototype.recover = async function (info, original, passphrase) {
 
   if (!f) throw new Error('provider ' + info.provider + ' recover not supported')
   return await f.bind(this)(info, original, passphrase)
+}
+
+Wallet.prototype.compareTx = function (unsignedHex, signedHex) {
+  var i
+  var signedTx = bitcoinjs.Transaction.fromHex(signedHex)
+  var unsignedTx = bitcoinjs.Transaction.fromHex(unsignedHex)
+
+  if ((unsignedTx.version !== signedTx.version) || (unsignedTx.locktime !== signedTx.locktime)) return false
+
+  if (unsignedTx.ins.length !== signedTx.ins.length) return false
+  for (i = 0; i < unsignedTx.ins.length; i++) {
+    if (!underscore.isEqual(underscore.omit(unsignedTx.ins[i], 'script'), underscore.omit(signedTx.ins[i], 'script'))) {
+      return false
+    }
+  }
+
+  return underscore.isEqual(unsignedTx.outs, signedTx.outs)
 }
 
 Wallet.prototype.submitTx = async function (info, signedTx) {
