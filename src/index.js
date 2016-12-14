@@ -111,9 +111,9 @@ server.ext('onRequest', function (request, reply) {
             },
             query: request.url.query,
             params: request.url.params,
-            headers: underscore.omit(request.headers, 'cookie')
+            headers: underscore.omit(request.headers, 'authorization', 'cookie')
 /* N.B. do not log IP addresses regardless of whether IP-anonymization is used
-            headers: underscore.omit(request.headers, 'cookie'),
+            headers: underscore.omit(request.headers, 'authorization', 'cookie'),
             remote:
             { address: (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(',')[0].trim(),
               port: request.headers['x-forwarded-port'] || request.info.remotePort
