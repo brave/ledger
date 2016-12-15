@@ -121,10 +121,11 @@ v1.write =
 
     try {
       if (wallet.unsignedTx) {
-        runtime.notify(debug, { channel: '#ledger-bot',
-                                text: 'comparison check on paymentId ' + paymentId + ' = ' +
-                                      runtime.wallet.compareTx(wallet.unsignedTx, signedTx)
-                              })
+        if (!runtime.wallet.compareTx(wallet.unsignedTx, signedTx)) {
+          runtime.notify(debug, { channel: '#ledger-bot', text: 'comparison check failed on paymentId ' + paymentId })
+        }
+      } else {
+        runtime.notify(debug, { channel: '#ledger-bot', text: 'unable to perform comparison check for paymentId ' + paymentId })
       }
     } catch (ex) {
       debug('compareTx', ex)
