@@ -140,7 +140,7 @@ v1.create =
 
           viewing:
             async function () {
-              var surveyorIds, viewing
+              var diagnostic, surveyorIds, viewing
               var viewings = runtime.db.get('viewings', debug)
 
               viewing = await viewings.findOne({ uId: uId })
@@ -148,8 +148,9 @@ v1.create =
 
               surveyorIds = viewing.surveyorIds || []
               if (surveyorIds.length !== viewing.count) {
-                return reply(boom.badImplementation('surveyorIds invalid found ' + surveyorIds.length + ', expecting ' +
-                             viewing.count))
+                diagnostic = 'surveyorIds invalid found ' + surveyorIds.length + ', expecting ' + viewing.count
+                runtime.notify(debug, { channel: '#devops-bot', text: 'viewing ' + uId + ': ' + diagnostic })
+                return reply(boom.badImplementation(diagnostic))
               }
               underscore.extend(response, { surveyorIds: viewing.surveyorIds, satoshis: viewing.satoshis })
             }
