@@ -8,6 +8,8 @@ var underscore = require('underscore')
 
 var v1 = {}
 
+var slop = 5
+
 var server = async function (request, reply, runtime) {
   var entry, surveyor
   var debug = braveHapi.debug(module, request)
@@ -441,7 +443,7 @@ var provision = async function (debug, runtime, surveyorId) {
     var count, surveyor
 
     if (!entry.surveyors) entry.surveyors = []
-    count = (entry.payload.adFree.votes * 4) - entry.surveyors.length
+    count = ((entry.payload.adFree.votes * 4) + slop) - entry.surveyors.length
     if (count < 1) return
 
     debug('surveyor', 'creating ' + count + ' voting surveyors for ' + entry.surveyorId)
