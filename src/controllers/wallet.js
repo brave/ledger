@@ -164,6 +164,10 @@ v1.write =
     if (votes > surveyor.surveyors.length) {
       state = { payload: request.payload, result: result, votes: votes, message: 'insufficient surveyors' }
       debug('wallet', state)
+      runtime.notify(debug, { channel: '#devops-bot',
+                              text: 'surveyor ' + surveyor.surveyorId + ' has ' + surveyor.surveyors.length + ', but needed ' +
+                                    votes
+                            })
       runtime.newrelic.noticeError(new Error('insufficent surveyors'), state)
     }
 
