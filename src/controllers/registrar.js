@@ -148,8 +148,9 @@ v1.create =
 
               surveyorIds = viewing.surveyorIds || []
               if (surveyorIds.length !== viewing.count) {
-                diagnostic = 'surveyorIds invalid found ' + surveyorIds.length + ', expecting ' + viewing.count
-                runtime.notify(debug, { channel: '#devops-bot', text: 'viewing ' + uId + ': ' + diagnostic })
+                diagnostic = 'surveyorIds invalid found ' + surveyorIds.length + ', expecting ' + viewing.count +
+                             ', surveyorId=' + viewing.surveyorId
+                runtime.notify(debug, { channel: '#devops-bot', text: 'viewing=' + uId + ': ' + diagnostic })
                 return reply(boom.badImplementation(diagnostic))
               }
               underscore.extend(response, { surveyorIds: viewing.surveyorIds, satoshis: viewing.satoshis })

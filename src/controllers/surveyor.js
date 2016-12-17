@@ -440,13 +440,15 @@ var provision = async function (debug, runtime, surveyorId) {
     entries = await surveyors.find({ surveyorType: 'contribution', available: true }, { limit: 1000, sort: { timestamp: -1 } })
   }
   entries.forEach(async function (entry) {
-    var count, surveyor
+    var count, fixupP, surveyor, viewers
+    var viewings = runtime.db.get('viewings', debug)
 
     if (!entry.surveyors) entry.surveyors = []
     count = ((entry.payload.adFree.votes * 4) + slop) - entry.surveyors.length
     if (count < 1) return
 
     debug('surveyor', 'creating ' + count + ' voting surveyors for ' + entry.surveyorId)
+    if (entry.surveyors.length !== 0) fixupP = true
     while (count > 0) {
       surveyor = await create(debug, runtime, 'voting', {}, entry.surveyorId)
       if (!surveyor) return debug('surveyor', 'unable to create ' + count + ' voting surveyors')
@@ -457,6 +459,28 @@ var provision = async function (debug, runtime, surveyorId) {
     }
 
     await surveyors.update({ surveyorId: entry.surveyorId }, { $set: { surveyors: entry.surveyors } }, { upsert: true })
+
+    if (!fixupP) return
+
+    viewers = await viewings.find({ surveyorId: entry.surveyorId })
+    viewers.forEach(async function (viewing) {
+      var state
+
+      var params = { surveyorId: entry.surveyorId,
+                     avail: entry.surveyors.length,
+                     viewingId: viewing.viewingId,
+                     needed: viewing.count }
+      if (viewing.surveyorIds.length >= params.needed) return debug('fixup not needed', params)
+
+      if (params.avail < params.needed) return debug('fixup not possible', params)
+
+      state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+                $set: { surveyorIds: underscore.shuffle(entry.surveyors).slice(0, viewing.count) }
+              }
+      await viewings.update({ viewingId: viewing.viewingId }, state, { upsert: true })
+
+      return debug('fixup complete', params)
+    })
   })
 }
 
