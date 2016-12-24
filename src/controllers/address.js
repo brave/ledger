@@ -15,7 +15,7 @@ var v1 = {}
 v1.validate =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var wallet
+    var balances, paymentId, state, wallet
     var debug = braveHapi.debug(module, request)
     var address = request.params.address
     var wallets = runtime.db.get('wallets', debug)
@@ -23,7 +23,21 @@ v1.validate =
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
-    reply({})
+    paymentId = wallet.paymentId
+    balances = wallet.balances
+    if (!balances) {
+      balances = await runtime.wallet.balances(wallet)
+
+      state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+                $set: { balances: balances }
+              }
+      await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+
+      await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
+    }
+
+    debug('VALIDATE', balances)
+    reply({ satoshis: balances.confirmed > balances.unconfirmed ? balances.confirmed : balances.unconfirmed })
   }
 },
 
@@ -41,7 +55,12 @@ v1.validate =
     },
 
   response:
-    { schema: Joi.object().length(0) }
+    { schema: Joi.object().keys(
+      {
+        satoshis: Joi.number().integer().min(0).optional().description('the wallet balance in satoshis')
+      })
+    }
+
 }
 
 /*
