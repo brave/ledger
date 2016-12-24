@@ -36,7 +36,6 @@ v1.validate =
       await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
     }
 
-    debug('VALIDATE', balances)
     reply({ satoshis: balances.confirmed > balances.unconfirmed ? balances.confirmed : balances.unconfirmed })
   }
 },
