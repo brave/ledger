@@ -340,7 +340,7 @@ As each entry is added to the `ballots` array,
 the `count` property in the corresponding entry in the `transactions` array is incremented.
 
 For each new entry in the `ballots` array,
-the client makes the `GET /v1/surveyor/voting/current/{viewingId}` request to get information about the voting surveyor
+the client makes the `GET /v1/surveyor/voting/{surveyorId}/{viewingId}` request to get information about the voting surveyor
 to be used for this ballot:
 
     <<< GET /v1/surveyor/voting/87%2B%2BH%2FBlRoy1t12WzZ2bNkbNy4RFpkrpb5Dn29Rhd2h/f2be4facb9de9b395a44902a2d5f1d7
