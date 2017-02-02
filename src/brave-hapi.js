@@ -6,6 +6,7 @@
 
 var path = require('path')
 var ProxyAgent = require('proxy-agent')
+try { var tldjs = require('tldjs') } catch (ex) {}
 var underscore = require('underscore')
 var wreck = require('wreck')
 
@@ -16,6 +17,33 @@ exports.debug = function (info, request) {
 
   sdebug.initialize({ request: { id: request.id } })
   return sdebug
+}
+
+exports.domainCompare = function (a, b) {
+  if (!tldjs) return labelsCompare(a, b)
+
+  if (!tldjs.isValid(a)) {
+    return (tldjs.isValid(b) ? (-1) : 0)
+  } else if (!tldjs.isValid(b)) return 1
+
+  return (labelsCompare(tldjs.getDomain(a), tldjs.getDomain(b)) ||
+          labelsCompare(tldjs.getSubdomain(a) || '', tldjs.getSubdomain(b) || ''))
+}
+
+var labelsCompare = function (a, b) {
+  var d
+
+  a = a.split('.').reverse()
+  b = b.split('.').reverse()
+
+  while (true) {
+    if (a.length === 0) {
+      return (b.length === 0 ? 0 : (-1))
+    } else if (b.length === 0) return 1
+
+    d = a.shift().localeCompare(b.shift())
+    if (d !== 0) return (d < 0 ? (-1) : 1)
+  }
 }
 
 var AsyncRoute = function () {
