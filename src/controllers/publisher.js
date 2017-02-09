@@ -79,7 +79,7 @@ v2.read =
   return async function (request, reply) {
     var entries, modifiers, query, result
     var debug = braveHapi.debug(module, request)
-    var limit = parseInt(request.query.limit, 10)
+    var limit = parseInt(request.query.limit, 1024)
     var timestamp = request.query.timestamp
     var publishers = runtime.db.get('publishersV2', debug)
 
