@@ -32,7 +32,11 @@ var rulesetEntryV2 = async function (request, runtime) {
   var ruleset = []
 
   entryV2.ruleset.forEach(rule => { if (rule.consequent) ruleset.push(rule) })
-
+  ruleset = [ { condition: "TLD === 'gov' || /^go.[a-z][a-z]$/.test(TLD) || /^gov.[a-z][a-z]$/.test(TLD)",
+                consequent: 'SLD',
+                description: 'governmental sites'
+              }
+            ].concat(ruleset)
   return { ruleset: ruleset, version: entryV2.version }
 }
 
