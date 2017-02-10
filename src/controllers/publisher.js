@@ -110,7 +110,7 @@ v2.read =
   validate:
     { query:
       { timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
-        limit: Joi.number().positive().max(512).optional().description('the maximum number of entries to return')
+        limit: Joi.number().positive().optional().description('the maximum number of entries to return')
       }
     },
 
