@@ -87,7 +87,7 @@ v2.read =
       return reply(boom.badRequest('invalid value for the timestamp parameter: ' + timestamp))
     }
 
-    if (isNaN(limit) || (limit > 256)) limit = 256
+    if (isNaN(limit) || (limit > 512)) limit = 512
     query = { timestamp: { $gte: timestamp } }
     modifiers = { sort: { timestamp: 1 } }
 
@@ -110,7 +110,7 @@ v2.read =
   validate:
     { query:
       { timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
-        limit: Joi.number().positive().optional().description('the maximum number of entries to return')
+        limit: Joi.number().positive().max(512).optional().description('the maximum number of entries to return')
       }
     },
 
