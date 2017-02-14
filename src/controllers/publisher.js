@@ -123,9 +123,7 @@ v2.read =
     },
 
   response:
-  { schema: Joi.array().items(
-            )
-  }
+    { schema: Joi.array().items(schemaV2) }
 }
 
 /*
@@ -440,6 +438,7 @@ v2.identity =
 
 /*
    GET /v1/publisher/identity/verified
+   GET /v2/publisher/identity/verified
  */
 
 v1.verified =
@@ -469,6 +468,52 @@ v1.verified =
     { schema: Joi.array().items(Joi.string()).description('verified publishers') }
 }
 
+v2.verified =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var entries, modifiers, query, result
+    var debug = braveHapi.debug(module, request)
+    var limit = parseInt(request.query.limit, 10)
+    var timestamp = request.query.timestamp
+    var tld = request.query.tld || { $exists: true }
+    var publishers = runtime.db.get('publishers', debug)
+
+    try { timestamp = (timestamp || 0) ? bson.Timestamp.fromString(timestamp) : bson.Timestamp.ZERO } catch (ex) {
+      return reply(boom.badRequest('invalid value for the timestamp parameter: ' + timestamp))
+    }
+
+    if (isNaN(limit) || (limit > 512)) limit = 512
+    query = { timestamp: { $gte: timestamp }, tld: tld }
+    modifiers = { sort: { timestamp: 1 } }
+
+    entries = await publishers.find(query, underscore.extend({ limit: limit }, modifiers))
+    result = []
+    entries.forEach(entry => {
+      if (entry.publisher === '') return
+
+      result.push(underscore.extend(underscore.omit(entry, [ '_id', 'timestamp' ]),
+                                    { timestamp: entry.timestamp.toString() }))
+    })
+
+    reply(result)
+  }
+},
+
+  description: 'Returns information about publisher verification entries',
+  tags: [ 'api' ],
+
+  validate:
+    { query:
+      { timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
+        limit: Joi.number().positive().optional().description('the maximum number of entries to return'),
+        tld: Joi.string().hostname().optional().description('a suffix-matching string')
+      }
+    },
+
+  response:
+    { schema: Joi.array().items(Joi.object().keys().unknown(true)) }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/publisher/ruleset').config(v1.read),
   braveHapi.routes.async().post().path('/v1/publisher/ruleset').config(v1.create),
@@ -482,7 +527,8 @@ module.exports.routes = [
   braveHapi.routes.async().delete().path('/v2/publisher/ruleset/{publisher}').config(v2.delete),
   braveHapi.routes.async().get().path('/v2/publisher/identity').config(v2.identity),
 
-  braveHapi.routes.async().get().path('/v1/publisher/identity/verified').config(v1.verified)
+  braveHapi.routes.async().get().path('/v1/publisher/identity/verified').config(v1.verified),
+  braveHapi.routes.async().get().path('/v2/publisher/identity/verified').config(v2.verified)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
