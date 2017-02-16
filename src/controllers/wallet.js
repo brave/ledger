@@ -8,6 +8,7 @@ var timestamp = require('monotonic-timestamp')
 var underscore = require('underscore')
 
 var v1 = {}
+var v2 = {}
 
 /*
    GET /v1/wallet/{paymentId}
@@ -218,6 +219,7 @@ v1.write =
 
 /*
    PUT /v1/wallet/{paymentId}/recover
+   GET /v2/wallet/{paymentId}/recover
  */
 
 v1.recover =
@@ -260,10 +262,54 @@ v1.recover =
 
 }
 
+v2.recover =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var result, wallet
+    var debug = braveHapi.debug(module, request)
+    var paymentId = request.params.paymentId.toLowerCase()
+    var wallets = runtime.db.get('wallets', debug)
+
+    wallet = await wallets.findOne({ paymentId: paymentId })
+    if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
+
+    result = underscore.extend({ address: wallet.address,
+                                 keychains: { user: underscore.pick(wallet.keychains.user,
+                                                                    [ 'xpub', 'encryptedXprv', 'path' ]) }
+                               })
+
+    reply(result)
+  }
+},
+
+  description: 'Recover the balance of an earlier wallet',
+  tags: [ 'api' ],
+
+  validate:
+    { params: { paymentId: Joi.string().guid().required().description('identity of the wallet') } },
+
+  response:
+  { schema: Joi.object().keys(
+    {
+      address: braveJoi.string().base58().required().description('BTC address'),
+      keychains: Joi.object().keys(
+        {
+          user: Joi.object().keys(
+            {
+              xpub: braveJoi.string().Xpub().required(),
+              encryptedXprv: Joi.string().required(),
+              path: Joi.string().required()
+            }).required()
+        }).required()
+    }).required()
+  }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/wallet/{paymentId}').config(v1.read),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}').config(v1.write),
-  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover)
+  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover),
+  braveHapi.routes.async().path('/v2/wallet/{paymentId}/recover').config(v2.recover)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
