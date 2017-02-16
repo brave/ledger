@@ -265,7 +265,7 @@ v1.recover =
 v2.recover =
 { handler: function (runtime) {
   return async function (request, reply) {
-    var result, wallet
+    var balances, result, state, wallet
     var debug = braveHapi.debug(module, request)
     var paymentId = request.params.paymentId.toLowerCase()
     var wallets = runtime.db.get('wallets', debug)
@@ -273,9 +273,20 @@ v2.recover =
     wallet = await wallets.findOne({ paymentId: paymentId })
     if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
 
+    balances = await runtime.wallet.balances(wallet)
+    if (!underscore.isEqual(balances, wallet.balances)) {
+      state = { $currentDate: { timestamp: { $type: 'timestamp' } },
+                $set: { balances: balances }
+              }
+      await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+
+      await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
+    }
+
     result = underscore.extend({ address: wallet.address,
                                  keychains: { user: underscore.pick(wallet.keychains.user,
-                                                                    [ 'xpub', 'encryptedXprv', 'path' ]) }
+                                                                    [ 'xpub', 'encryptedXprv', 'path' ]) },
+                                 satoshis: balances.confirmed
                                })
 
     reply(result)
@@ -300,7 +311,8 @@ v2.recover =
               encryptedXprv: Joi.string().required(),
               path: Joi.string().required()
             }).required()
-        }).required()
+        }).required(),
+      satoshis: Joi.number().integer().min(0).optional().description('the recovered amount in satoshis')
     }).required()
   }
 }
