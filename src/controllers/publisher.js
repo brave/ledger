@@ -155,7 +155,7 @@ v1.create =
     },
 
   description: 'Defines a publisher identity ruleset entry',
-  tags: [ 'api' ],
+  tags: [ 'api', 'deprecated' ],
 
   validate:
     { payload: ledgerPublisher.schema },
@@ -276,7 +276,7 @@ v1.delete =
     },
 
   description: 'Resets the publisher identity ruleset',
-  tags: [ 'api' ],
+  tags: [ 'api', 'deprecated' ],
 
   validate:
     { query: {} },
@@ -364,7 +364,7 @@ v1.identity =
 },
 
   description: 'Returns the publisher identity associated with a URL',
-  tags: [ 'api' ],
+  tags: [ 'api', 'deprecated' ],
 
   validate:
     { query: { url: Joi.string().uri({ scheme: /https?/ }).required().description('the URL to parse') } },
@@ -458,7 +458,7 @@ v1.verified =
 },
 
   description: 'Returns a list of verified publishers',
-  tags: [ 'api' ],
+  tags: [ 'api', 'deprecated' ],
 
   validate:
     { query: { limit: Joi.number().integer().positive().default(500).description('maximum number of matches'),

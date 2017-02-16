@@ -245,7 +245,7 @@ v1.recover =
 },
 
   description: 'Recover the balance of an earlier wallet',
-  tags: [ 'api' ],
+  tags: [ 'api', 'deprecated' ],
 
   validate:
     { params: { paymentId: Joi.string().guid().required().description('identity of the wallet') },
