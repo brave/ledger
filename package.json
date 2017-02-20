@@ -48,6 +48,7 @@
     "inert": "^3.2.0",
     "joi": "^9.0.0-2",
     "json-stringify-safe": "^5.0.1",
+    "json2csv": "^3.6.2",
     "ledger-balance": "^0.8.64",
     "ledger-publisher": "^0.8.124",
     "moment": "^2.13.0",

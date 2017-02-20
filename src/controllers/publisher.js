@@ -5,6 +5,8 @@ var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
 var path = require('path')
 var underscore = require('underscore')
+var url = require('url')
+var uuid = require('uuid')
 
 var v1 = {}
 var v2 = {}
@@ -127,42 +129,8 @@ v2.read =
 }
 
 /*
-   POST /v1/publisher/ruleset
    POST /v2/publisher/ruleset
  */
-
-v1.create =
-{ handler: function (runtime) {
-  return async function (request, reply) {
-    var state
-    var debug = braveHapi.debug(module, request)
-    var version = runtime.npminfo.children['ledger-publisher'] + '-' + underscore.now()
-    var rulesets = runtime.db.get('rulesets', debug)
-
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { ruleset: request.payload, version: version, type: 'publisher/ruleset' }
-            }
-    await rulesets.update({ rulesetId: rulesetId }, state, { upsert: true })
-
-    reply(version)
-  }
-},
-
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
-
-  description: 'Defines a publisher identity ruleset entry',
-  tags: [ 'api', 'deprecated' ],
-
-  validate:
-    { payload: ledgerPublisher.schema },
-
-  response:
-    { schema: Joi.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+-[1-9][0-9]+$/) }
-}
 
 v2.create =
 { handler: function (runtime) {
@@ -206,6 +174,41 @@ v2.create =
 
   response:
     { schema: schemaV2 }
+}
+
+/*
+   PATCH /v2/publisher/rulesets
+ */
+
+v2.update =
+{ handler: function (runtime) {
+  return async function (request, reply) {
+    var authority = request.auth.credentials.provider + ':' + request.auth.credentials.profile.username
+    var reportId = uuid.v4().toLowerCase()
+    var reportURL = url.format(underscore.defaults({ pathname: '/v1/reports/file/' + reportId }, runtime.config.server))
+    var debug = braveHapi.debug(module, request)
+
+    await runtime.queue.send(debug, 'patch-publisher-rulesets',
+                             underscore.defaults({ reportId: reportId, reportURL: reportURL, authority: authority },
+                                                 { entries: request.payload }))
+    reply({ reportURL: reportURL })
+  }
+},
+
+  auth:
+    { strategy: 'session',
+      scope: [ 'devops' ],
+      mode: 'required'
+    },
+
+  description: 'Batched update of publisher identity ruleset entries',
+  tags: [ 'api' ],
+
+  validate:
+  { payload: Joi.array().items(Joi.object().keys(underscore.extend(publisherV2, propertiesV2))).required() },
+
+  response:
+    { schema: Joi.object().keys().unknown(true) }
 }
 
 /*
@@ -253,37 +256,8 @@ v2.write =
 }
 
 /*
-   DELETE /v1/publisher/ruleset
    DELETE /v2/publisher/ruleset/{publisher}
  */
-
-v1.delete =
-{ handler: function (runtime) {
-  return async function (request, reply) {
-    var debug = braveHapi.debug(module, request)
-    var rulesets = runtime.db.get('rulesets', debug)
-
-    await rulesets.remove({ rulesetId: rulesetId })
-
-    reply(runtime.npminfo.children['ledger-publisher'])
-  }
-},
-
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
-
-  description: 'Resets the publisher identity ruleset',
-  tags: [ 'api', 'deprecated' ],
-
-  validate:
-    { query: {} },
-
-  response:
-    { schema: Joi.string().regex(/^[0-9]+\.[0-9]+\.[0-9]+$/) }
-}
 
 v2.delete =
 { handler: function (runtime) {
@@ -516,13 +490,12 @@ v2.verified =
 
 module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/publisher/ruleset').config(v1.read),
-  braveHapi.routes.async().post().path('/v1/publisher/ruleset').config(v1.create),
-  braveHapi.routes.async().delete().path('/v1/publisher/ruleset').config(v1.delete),
   braveHapi.routes.async().get().path('/v1/publisher/ruleset/version').config(v1.version),
   braveHapi.routes.async().get().path('/v1/publisher/identity').config(v1.identity),
 
   braveHapi.routes.async().get().path('/v2/publisher/ruleset').config(v2.read),
   braveHapi.routes.async().post().path('/v2/publisher/ruleset').config(v2.create),
+  braveHapi.routes.async().patch().path('/v2/publisher/rulesets').config(v2.update),
   braveHapi.routes.async().put().path('/v2/publisher/ruleset/{publisher}').config(v2.write),
   braveHapi.routes.async().delete().path('/v2/publisher/ruleset/{publisher}').config(v2.delete),
   braveHapi.routes.async().get().path('/v2/publisher/identity').config(v2.identity),
@@ -575,6 +548,8 @@ module.exports.initialize = async function (debug, runtime) {
 
     ledgerPublisher.ruleset = rules
   })
+
+  await runtime.queue.create('patch-publisher-rulesets')
 
   entry = await publishers.findOne({ publisher: 'brave.com', facet: 'domain' })
   if (entry) return
