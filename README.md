@@ -3,8 +3,6 @@ The Brave Ledger is a BTC-based micropayments system for users and publishers.
 
 Note that [travis-ci](https://travis-ci.org/brave/ledger) is not yet operational for this repository.
 
-<img src='documentation/ecosystem.png' />
-
 # Initialization
 Take a look at the files in the `config/` directory.
 When the server starts,
