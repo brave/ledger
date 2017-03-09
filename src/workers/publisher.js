@@ -23,9 +23,7 @@ exports.workers = {
       state = { $currentDate: { timestamp: { $type: 'timestamp' } },
                 $set: underscore.extend({ tld: tld }, underscore.omit(payload, [ 'publisher' ]))
               }
-      debug('publisher-report', state.$set)
-
-//    await publishers.update({ publisher: publisher }, state, { upsert: true })
+      await publishers.update({ publisher: publisher }, state, { upsert: true })
     }
 }
 
