@@ -1,4 +1,5 @@
-// var underscore = require('underscore')
+var tldjs = require('tldjs')
+var underscore = require('underscore')
 
 var exports = {}
 
@@ -14,18 +15,17 @@ exports.workers = {
  */
   'publisher-report':
     async function (debug, runtime, payload) {
-      return debug('publisher-report', payload)
-/*
-
       var state
       var publisher = payload.publisher
-      var publishers = runtime.db.get('publishersV2', debug)
+      var publishers = runtime.db.get('publishers', debug)
+      var tld = tldjs.getPublicSuffix(publisher)
 
       state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                $set: underscore.omit(payload, [ 'publisher' ])
+                $set: underscore.extend({ tld: tld }, underscore.omit(payload, [ 'publisher' ]))
               }
-      await publishers.update({ publisher: publisher }, state, { upsert: true })
- */
+      debug('publisher-report', state.$set)
+
+//    await publishers.update({ publisher: publisher }, state, { upsert: true })
     }
 }
 
