@@ -89,6 +89,7 @@ v2.read =
   return async function (request, reply) {
     var entries, modifiers, query, result
     var debug = braveHapi.debug(module, request)
+    var excludedOnly = request.query.excludedOnly
     var limit = parseInt(request.query.limit, 10)
     var timestamp = request.query.timestamp
     var publishers = runtime.db.get('publishersV2', debug)
@@ -104,7 +105,7 @@ v2.read =
     entries = await publishers.find(query, underscore.extend({ limit: limit }, modifiers))
     result = []
     entries.forEach(entry => {
-      if (entry.publisher === '') return
+      if ((entry.publisher === '') || (excludedOnly && (entry.exclude !== true))) return
 
       result.push(underscore.extend(underscore.omit(entry, [ '_id', 'timestamp' ]),
                                     { timestamp: entry.timestamp.toString() }))
@@ -120,7 +121,8 @@ v2.read =
   validate:
     { query:
       { timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
-        limit: Joi.number().positive().optional().description('the maximum number of entries to return')
+        limit: Joi.number().positive().optional().description('the maximum number of entries to return'),
+        excludedOnly: Joi.boolean().optional().default(true).description('return only excluded sites')
       }
     },
 
@@ -282,7 +284,7 @@ v2.delete =
       mode: 'required'
     },
 
-  description: 'Deletes information a a publisher identity ruleset entry',
+  description: 'Deletes information a publisher identity ruleset entry',
   tags: [ 'api' ],
 
   validate:

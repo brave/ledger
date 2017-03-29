@@ -128,45 +128,88 @@ Wallet.prototype.unsignedTx = async function (info, amount, currency, balance) {
 
 Wallet.prototype.rates = {}
 
-var schema = Joi.object({}).pattern(/timestamp|[A-Z][A-Z][A-Z]/,
-                                    Joi.alternatives().try(Joi.date(),
-                                                           Joi.object().keys({ last: Joi.number().positive() }).unknown(true)))
-                .required()
+var schema1 = Joi.object({}).pattern(/timestamp|[A-Z][A-Z][A-Z]/,
+                                     Joi.alternatives().try(Joi.date(),
+                                                            Joi.object().keys({ last: Joi.number().positive() }).unknown(true)))
+                 .required()
+var schema2 = Joi.object()
+              .keys({
+                bpi: Joi.object().pattern(/[A-Z][A-Z][A-Z]/,
+                                          Joi.object().keys({
+                                            code: Joi.string().regex(/[A-Z][A-Z][A-Z]/).required(),
+                                            rate_float: Joi.number().positive().required()
+                                          }).unknown(true)).required()
+
+              }).unknown(true)
 
 var maintenance = async function (config, runtime) {
-  var rates, result, signature, url, validity
+  var rates, result1, result2
   var timestamp = Math.round(underscore.now() / 1000)
   var prefix = timestamp + '.' + config.bitcoin_average.publicKey
   var suffix = crypto.createHmac('sha256', config.bitcoin_average.secretKey).update(prefix).digest('hex')
+  var signature = prefix + '.' + suffix
 
-  try {
-    url = 'https://apiv2.bitcoinaverage.com/indices/global/ticker/all?crypto=BTC'
-    signature = prefix + '.' + suffix
-    result = await braveHapi.wreck.get(url, { headers: { 'x-signature': signature } })
+  var fetch = async function(url, props, schema) {
+    var result, validity
+
+    result = await braveHapi.wreck.get(url, props)
     if (Buffer.isBuffer(result)) result = result.toString()
 // courtesy of https://stackoverflow.com/questions/822452/strip-html-from-text-javascript#822464
     if (result.indexOf('<html>') !== -1) throw new Error(result.replace(/<(?:.|\n)*?>/gm, ''))
+
     result = JSON.parse(result)
     validity = Joi.validate(result, schema)
     if (validity.error) throw new Error(validity.error)
 
-    rates = {}
-    underscore.keys(result).forEach(currency => {
-      var rate = result[currency]
-
-      if ((currency.indexOf('BTC') !== 0) || (typeof rate !== 'object') || (!rate.last)) return
-
-      rates[currency.substr(3)] = rate.last
-    })
-
-    Wallet.prototype.rates = rates
-    debug('BTC key rates', underscore.pick(rates, [ 'USD', 'EUR', 'GBP' ]))
-  } catch (ex) {
-    debug('maintenance error', ex)
-    debug('maintenance details', 'curl -X GET --header "X-Signature: ' + signature + '" ' + url)
-
-    runtime.notify(debug, { text: 'maintenance error: ' + ex.toString() })
+    return result
   }
+
+  try {
+    result1 = await fetch('https://apiv2.bitcoinaverage.com/indices/global/ticker/all?crypto=BTC',
+                          { headers: { 'x-signature': signature } }, schema1)
+  } catch (ex) {
+    return runtime.notify(debug, { text: 'maintenance error(1): ' + ex.toString() })
+  }
+
+  try {
+    result2 = await fetch('http://api.coindesk.com/v1/bpi/currentprice.json', {}, schema2)
+  } catch (ex) {
+    return runtime.notify(debug, { text: 'maintenance error(2): ' + ex.toString() })
+  }
+
+  rates = {}
+  underscore.keys(result1).forEach(currency => {
+    var rate = result1[currency]
+
+    if ((currency.indexOf('BTC') !== 0) || (typeof rate !== 'object') || (!rate.last)) return
+
+    rates[currency.substr(3)] = rate.last
+  })
+  if ((!rates.USD) || (!rates.EUR) || (!rates.GBP)) {
+    return runtime.notify(debug, { text: 'maintenance error(3): currencies available ' + underscore.keys(rates) })
+  }
+  if ((!result2.bpi.USD) || (!result2.bpi.EUR) || (!result2.bpi.GBP)) {
+    return runtime.notify(debug, { text: 'maintenance error(4): currencies available ' + underscore.keys(result2.bpi) })
+  }
+
+  var compar = (currency) => {
+    var ratio = rates[currency] / result2.bpi[currency].rate_float
+
+    if ((ratio < 0.995) || (ratio > 1.005)) {
+      throw new Error('maintenance error(5): ' + currency + ' ' + rates[currency] + ' vs. ' + result2.bpi[currency].rate_float)
+    }
+  }
+
+  try {
+    compar('USD')
+    compar('EUR')
+    compar('GBP')
+  } catch (ex) {
+    return
+  }
+
+  Wallet.prototype.rates = rates
+  debug('BTC key rates', underscore.pick(rates, [ 'USD', 'EUR', 'GBP' ]))
 }
 
 module.exports = Wallet
