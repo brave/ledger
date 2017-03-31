@@ -287,7 +287,7 @@ Wallet.providers.bitgo = {
     var rate = Wallet.prototype.rates[currency.toUpperCase()]
     var recipients = {}
 
-    if (!rate) throw new Error('no such currency: ' + currency')
+    if (!rate) throw new Error('no such currency: ' + currency)
 
     desired = (amount / rate) * 1e8
     minimum = Math.floor(desired * 0.90)
