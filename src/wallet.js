@@ -195,7 +195,7 @@ var maintenance = async function (config, runtime) {
   var compar = (currency) => {
     var ratio = rates[currency] / result2.bpi[currency].rate_float
 
-    if ((ratio < 0.995) || (ratio > 1.005)) {
+    if ((ratio < 0.985) || (ratio > 1.015)) {
       throw new Error('maintenance error(5): ' + currency + ' ' + rates[currency] + ' vs. ' + result2.bpi[currency].rate_float)
     }
   }
@@ -205,7 +205,7 @@ var maintenance = async function (config, runtime) {
     compar('EUR')
     compar('GBP')
   } catch (ex) {
-    return
+    return runtime.notify(debug, { text: ex.toString() })
   }
 
   Wallet.prototype.rates = rates
