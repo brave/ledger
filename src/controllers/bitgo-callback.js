@@ -27,9 +27,7 @@ v1.sink =
     var wallets = runtime.db.get('wallets', debug)
     var webhooks = runtime.db.get('webhooks', debug)
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { provider: 'bitgo', payload: payload }
-            }
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: { provider: 'bitgo', payload: payload } }
     await webhooks.update({ webhookId: uuid.v4().toLowerCase() }, state, { upsert: true })
 
     reply({})
@@ -37,9 +35,7 @@ v1.sink =
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return debug('no such bitgo wallet', payload)
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { balances: await runtime.wallet.balances(wallet) }
-            }
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: { balances: await runtime.wallet.balances(wallet) } }
     await wallets.update({ paymentId: wallet.paymentId }, state, { upsert: true })
 
     await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: wallet.paymentId }, state.$set))
@@ -59,12 +55,13 @@ v1.sink =
 module.exports.routes = [ braveHapi.routes.async().post().path('/callbacks/bitgo/sink').config(v1.sink) ]
 
 module.exports.initialize = async function (debug, runtime) {
-  runtime.db.checkIndices(debug,
-  [ { category: runtime.db.get('webhooks', debug),
+  runtime.db.checkIndices(debug, [
+    {
+      category: runtime.db.get('webhooks', debug),
       name: 'webhooks',
       property: 'webhookId',
       empty: { webhookId: '', provider: '', payload: '', timestamp: bson.Timestamp.ZERO },
-      unique: [ { webhookId: 0 } ],
+      unique: [ { webhookId: 1 } ],
       others: [ { provider: 1 }, { timestamp: 1 } ]
     }
   ])

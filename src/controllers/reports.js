@@ -70,23 +70,25 @@ v2.publisher.rulesets =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'devops' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'devops' ],
+    mode: 'required'
+  },
 
   description: 'Returns information about publisher rulesets',
   tags: [ 'api' ],
 
-  validate:
-    { query: { exclude: Joi.boolean().optional().description('excluded from auto-include list'),
-               facet: Joi.string().valid('domain', 'SLD', 'TLD').optional().description('the entry type'),
-               tag: Joi.string().valid('ads', 'adult', 'aggregators', 'brave', 'btc-exchanges', 'commerce', 'contentStores',
-                                       'government', 'imageStores', 'machineTranslations', 'messageApps', 'news', 'platforms',
-                                       'redirection', 'search', 'services').optional().description('taxonomy tag'),
-               format: Joi.string().valid('json', 'csv').optional().default('csv').description('the format of the report')
-              } },
+  validate: {
+    query: {
+      exclude: Joi.boolean().optional().description('excluded from auto-include list'),
+      facet: Joi.string().valid('domain', 'SLD', 'TLD').optional().description('the entry type'),
+      tag: Joi.string().valid('ads', 'adult', 'aggregators', 'brave', 'btc-exchanges', 'commerce', 'contentStores',
+                              'government', 'imageStores', 'machineTranslations', 'messageApps', 'news', 'platforms',
+                              'redirection', 'search', 'services').optional().description('taxonomy tag'),
+      format: Joi.string().valid('json', 'csv').optional().default('csv').description('the format of the report')
+    }
+  },
 
   response:
     { schema: Joi.object().keys().unknown(true) }

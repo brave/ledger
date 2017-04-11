@@ -7,18 +7,18 @@ var v1 = {}
    GET /v1/ping
  */
 
-v1.ping =
-{ handler: function (runtime) {
-  return async function (request, reply) {
-    reply(runtime.npminfo)
-  }
-},
+v1.ping = {
+  handler: function (runtime) {
+    return async function (request, reply) {
+      reply(runtime.npminfo)
+    }
+  },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'devops' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'devops' ],
+    mode: 'required'
+  },
 
   description: 'Returns information about the server',
   tags: [ 'api' ],

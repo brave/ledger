@@ -34,15 +34,16 @@ var rulesetEntryV2 = async function (request, runtime) {
   var ruleset = []
 
   entryV2.ruleset.forEach(rule => { if (rule.consequent) ruleset.push(rule) })
-  ruleset = [ { condition: '/^[a-z][a-z].gov$/.test(SLD)',
-                consequent: 'QLD + "." + SLD',
-                description: 'governmental sites'
-              },
-              { condition: "TLD === 'gov' || /^go.[a-z][a-z]$/.test(TLD) || /^gov.[a-z][a-z]$/.test(TLD)",
-                consequent: 'SLD',
-                description: 'governmental sites'
-              }
-            ].concat(ruleset)
+  ruleset = [
+    { condition: '/^[a-z][a-z].gov$/.test(SLD)',
+      consequent: 'QLD + "." + SLD',
+      description: 'governmental sites'
+    },
+    { condition: "TLD === 'gov' || /^go.[a-z][a-z]$/.test(TLD) || /^gov.[a-z][a-z]$/.test(TLD)",
+      consequent: 'SLD',
+      description: 'governmental sites'
+    }
+  ].concat(ruleset)
   return { ruleset: ruleset, version: entryV2.version }
 }
 
@@ -56,7 +57,7 @@ var propertiesV2 =
   }
 
 var schemaV2 = Joi.object().keys(underscore.extend({}, publisherV2, propertiesV2,
-  { timestamp: Joi.string().regex(/^[0-9]+$/).required().description('an opaque, monotonically-increasing value') },
+  { timestamp: Joi.string().regex(/^[0-9]+$/).required().description('an opaque, monotonically-increasing value') }
 ))
 
 /*
@@ -118,13 +119,13 @@ v2.read =
   description: 'Returns information about publisher identity ruleset entries',
   tags: [ 'api' ],
 
-  validate:
-    { query:
-      { timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
-        limit: Joi.number().positive().optional().description('the maximum number of entries to return'),
-        excludedOnly: Joi.boolean().optional().default(true).description('return only excluded sites')
-      }
-    },
+  validate: {
+    query: {
+      timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
+      limit: Joi.number().positive().optional().description('the maximum number of entries to return'),
+      excludedOnly: Joi.boolean().optional().default(true).description('return only excluded sites')
+    }
+  },
 
   response:
     { schema: Joi.array().items(schemaV2) }
@@ -162,17 +163,17 @@ v2.create =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Defines information a new publisher identity ruleset entry',
   tags: [ 'api' ],
 
   validate:
-  { payload: underscore.extend({}, publisherV2, propertiesV2) },
+    { payload: underscore.extend({}, publisherV2, propertiesV2) },
 
   response:
     { schema: schemaV2 }
@@ -197,17 +198,17 @@ v2.update =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'devops' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'devops' ],
+    mode: 'required'
+  },
 
   description: 'Batched update of publisher identity ruleset entries',
   tags: [ 'api' ],
 
   validate:
-  { payload: Joi.array().items(Joi.object().keys(underscore.extend(publisherV2, propertiesV2))).required() },
+    { payload: Joi.array().items(Joi.object().keys(underscore.extend(publisherV2, propertiesV2))).required() },
 
   response:
     { schema: Joi.object().keys().unknown(true) }
@@ -225,9 +226,7 @@ v2.write =
     var publisher = request.params.publisher
     var publishers = runtime.db.get('publishersV2', debug)
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: request.payload
-            }
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: request.payload }
     await publishers.update({ publisher: publisher }, state, { upsert: true })
 
     result = await publishers.findOne({ publisher: publisher })
@@ -239,19 +238,19 @@ v2.write =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'devops' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'devops' ],
+    mode: 'required'
+  },
 
   description: 'Sets information for a publisher identity ruleset entry',
   tags: [ 'api' ],
 
-  validate:
-    { params: publisherV2,
-      payload: Joi.object().keys(propertiesV2)
-    },
+  validate: {
+    params: publisherV2,
+    payload: Joi.object().keys(propertiesV2)
+  },
 
   response:
     { schema: schemaV2 }
@@ -278,11 +277,11 @@ v2.delete =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Deletes information a publisher identity ruleset entry',
   tags: [ 'api' ],
@@ -436,9 +435,12 @@ v1.verified =
   description: 'Returns a list of verified publishers',
   tags: [ 'api', 'deprecated' ],
 
-  validate:
-    { query: { limit: Joi.number().integer().positive().default(500).description('maximum number of matches'),
-               tld: Joi.string().hostname().optional().description('a suffix-matching string') } },
+  validate: {
+    query: {
+      limit: Joi.number().integer().positive().default(500).description('maximum number of matches'),
+      tld: Joi.string().hostname().optional().description('a suffix-matching string')
+    }
+  },
 
   response:
     { schema: Joi.array().items(Joi.string()).description('verified publishers') }
@@ -478,13 +480,13 @@ v2.verified =
   description: 'Returns information about publisher verification entries',
   tags: [ 'api' ],
 
-  validate:
-    { query:
-      { timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
-        limit: Joi.number().positive().optional().description('the maximum number of entries to return'),
-        tld: Joi.string().hostname().optional().description('a suffix-matching string')
-      }
-    },
+  validate: {
+    query: {
+      timestamp: Joi.string().regex(/^[0-9]+$/).optional().description('an opaque, monotonically-increasing value'),
+      limit: Joi.number().positive().optional().description('the maximum number of entries to return'),
+      tld: Joi.string().hostname().optional().description('a suffix-matching string')
+    }
+  },
 
   response:
     { schema: Joi.array().items(Joi.object().keys().unknown(true)) }
@@ -511,22 +513,25 @@ module.exports.initialize = async function (debug, runtime) {
   var publishers = runtime.db.get('publishersV2', debug)
   var rulesets = runtime.db.get('rulesets', debug)
 
-  runtime.db.checkIndices(debug,
-  [ { category: rulesets,
+  runtime.db.checkIndices(debug, [
+    {
+      category: rulesets,
       name: 'rulesets',
       property: 'rulesetId',
       empty: { rulesetId: 0, type: '', version: '', timestamp: bson.Timestamp.ZERO },
       unique: [ { rulesetId: 1 } ],
       others: [ { type: 1 }, { version: 1 }, { timestamp: 1 } ]
     },
-    { category: runtime.db.get('publishers', debug),
+    {
+      category: runtime.db.get('publishers', debug),
       name: 'publishers',
       property: 'publisher',
       empty: { publisher: '', tld: '', verified: false, timestamp: bson.Timestamp.ZERO },
       unique: [ { publisher: 1 } ],
       others: [ { tld: 1 }, { verified: 1 }, { timestamp: 1 } ]
     },
-    { category: publishers,
+    {
+      category: publishers,
       name: 'publishersV2',
       property: 'publisher',
       empty: { publisher: '', facet: '', exclude: false, tags: [], timestamp: bson.Timestamp.ZERO },

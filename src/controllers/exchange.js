@@ -81,26 +81,28 @@ ledgerExchange = {
     )
 }
 
-var cubits = [ 'AT',
-               'BA', 'BE', 'BG', 'BR',
-               'CA', 'CH', 'CY', 'CZ',
-               'DE', 'DK',
-               'EE', 'ES',
-               'FI', 'FR',
-               'GB', 'GR',
-               'HR', 'HU',
-               'IE', 'IS', 'IT',
-               'JP',
-               'KR',
-               'LI', 'LT', 'LU', 'LV',
-               'MT', 'MX',
-               'NL', 'NO', 'NZ',
-               'PO', 'PT',
-               'RO', 'RU',
-               'SE', 'SG', 'SI', 'SK',
-               'TR',
-               'UA',
-               'ZA' ]
+var cubits = [
+  'AT',
+  'BA', 'BE', 'BG', 'BR',
+  'CA', 'CH', 'CY', 'CZ',
+  'DE', 'DK',
+  'EE', 'ES',
+  'FI', 'FR',
+  'GB', 'GR',
+  'HR', 'HU',
+  'IE', 'IS', 'IT',
+  'JP',
+  'KR',
+  'LI', 'LT', 'LU', 'LV',
+  'MT', 'MX',
+  'NL', 'NO', 'NZ',
+  'PO', 'PT',
+  'RO', 'RU',
+  'SE', 'SG', 'SI', 'SK',
+  'TR',
+  'UA',
+  'ZA'
+]
 cubits.forEach((iso3166) => {
   ledgerExchange.providers[iso3166] = { exchangeName: 'Cubits', exchangeURL: 'https://cubits.com/' }
 })
@@ -156,20 +158,21 @@ v1.create =
     var version = ledgerExchange.version + '-' + underscore.now()
     var rulesets = runtime.db.get('rulesets', debug)
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { ruleset: request.payload, version: version, type: 'balance/providers' }
-            }
+    state = {
+      $currentDate: { timestamp: { $type: 'timestamp' } },
+      $set: { ruleset: request.payload, version: version, type: 'balance/providers' }
+    }
     await rulesets.update({ rulesetId: rulesetId }, state, { upsert: true })
 
     reply(version)
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Defines the list of ledger exchange providers',
   tags: [ 'api' ],
@@ -197,11 +200,11 @@ v1.delete =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Resets the list of ledger exchange providers',
   tags: [ 'api' ],
@@ -247,8 +250,9 @@ module.exports.initialize = async function (debug, runtime) {
   var entry, validity
   var rulesets = runtime.db.get('rulesets', debug)
 
-  runtime.db.checkIndices(debug,
-  [ { category: rulesets,
+  runtime.db.checkIndices(debug, [
+    {
+      category: rulesets,
       name: 'rulesets',
       property: 'rulesetId',
       empty: { rulesetId: 0, type: '', version: '', timestamp: bson.Timestamp.ZERO },

@@ -28,9 +28,7 @@ v1.validate =
     if (!balances) {
       balances = await runtime.wallet.balances(wallet)
 
-      state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                $set: { balances: balances }
-              }
+      state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: { balances: balances } }
       await wallets.update({ paymentId: paymentId }, state, { upsert: true })
 
       await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
@@ -40,26 +38,24 @@ v1.validate =
   }
 },
 
-  auth:
-    { strategy: 'simple',
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'simple',
+    mode: 'required'
+  },
 
   description: 'Determines the validity of a BTC address',
   tags: [ 'api' ],
 
-  validate:
-    { params: { address: braveJoi.string().base58().required().description('BTC address') },
-      query: { access_token: Joi.string().guid().optional() }
-    },
+  validate: {
+    params: { address: braveJoi.string().base58().required().description('BTC address') },
+    query: { access_token: Joi.string().guid().optional() }
+  },
 
-  response:
-    { schema: Joi.object().keys(
-      {
-        satoshis: Joi.number().integer().min(0).optional().description('the wallet balance in satoshis')
-      })
-    }
-
+  response: {
+    schema: Joi.object().keys({
+      satoshis: Joi.number().integer().min(0).optional().description('the wallet balance in satoshis')
+    })
+  }
 }
 
 /*
@@ -126,25 +122,25 @@ v1.populate =
   }
 },
 
-  auth:
-    { strategy: 'simple',
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'simple',
+    mode: 'required'
+  },
 
   description: 'Validates the "attempt to populate" a BTC address',
   tags: [ 'api' ],
 
-  validate:
-    { params: { address: braveJoi.string().base58().required().description('BTC address') },
-      query: { access_token: Joi.string().guid().optional() },
-      payload:
-      { actor: Joi.string().required().description('authorization agent'),
-        transactionId: Joi.string().required().description('transaction-identifier'),
-        fee: Joi.number().min(0).required().description('the processing fee in fiat currency'),
-        amount: Joi.number().min(5).required().description('the payment amount in fiat currency'),
-        currency: braveJoi.string().currencyCode().required().default('USD').description('the fiat currency')
-      }
-    },
+  validate: {
+    params: { address: braveJoi.string().base58().required().description('BTC address') },
+    query: { access_token: Joi.string().guid().optional() },
+    payload: {
+      actor: Joi.string().required().description('authorization agent'),
+      transactionId: Joi.string().required().description('transaction-identifier'),
+      fee: Joi.number().min(0).required().description('the processing fee in fiat currency'),
+      amount: Joi.number().min(5).required().description('the payment amount in fiat currency'),
+      currency: braveJoi.string().currencyCode().required().default('USD').description('the fiat currency')
+    }
+  },
 
   response:
     { schema: { satoshis: Joi.number().integer().min(0).required().description('the populated amount in satoshis') } }
@@ -158,12 +154,13 @@ module.exports.routes = [
 module.exports.initialize = async function (debug, runtime) {
   stripe = require('stripe')(runtime.config.payments.stripe.secretKey)
 
-  runtime.db.checkIndices(debug,
-  [ { category: runtime.db.get('wallets', debug),
+  runtime.db.checkIndices(debug, [
+    {
+      category: runtime.db.get('wallets', debug),
       name: 'wallets',
       property: 'paymentId',
       empty: { paymentId: '', address: '', provider: '', balances: {}, paymentStamp: 0, timestamp: bson.Timestamp.ZERO },
-      unique: [ { paymentId: 0 }, { address: 0 } ],
+      unique: [ { paymentId: 1 }, { address: 1 } ],
       others: [ { provider: 1 }, { paymentStamp: 1 }, { timestamp: 1 } ]
     }
   ])

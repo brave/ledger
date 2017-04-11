@@ -18,7 +18,7 @@ var DB = function (config) {
 DB.prototype.file = async function (filename, mode, options) {
   options = underscore.extend(options || {}, { safe: true })
 
-  if (mode !== 'r') return (await new GridStore(this.db._db, filename, mode, options).open())
+  if (mode !== 'r') return (new GridStore(this.db._db, filename, mode, options).open())
 
   return new Promise((resolve, reject) => {
     GridStore.exist(this.db._db, filename, (err, result) => {
@@ -76,7 +76,7 @@ DB.prototype.checkIndices = async function (debug, entries) {
     var category = entry.category
 
     try { indices = await category.indexes() } catch (ex) { indices = [] }
-    doneP = underscore.intersection(underscore.keys(indices), [entry.property + '_0', entry.property + '_1']).length !== 0
+    doneP = underscore.keys(indices).indexOf(entry.property + '_1') !== -1
 
     debug(entry.name + ' indices ' + (doneP ? 'already' : 'being') + ' created')
     if (doneP) return

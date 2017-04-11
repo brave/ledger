@@ -96,22 +96,21 @@ v1.read =
   description: 'Returns information about a surveyor',
   tags: [ 'api' ],
 
-  validate:
-    { params:
-      { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
-        surveyorId: Joi.string().required().description('the identity of the surveyor')
-      }
-    },
-
-  response:
-    { schema: Joi.object().keys(
-      {
-        surveyorId: Joi.string().required().description('identifier for the surveyor'),
-        surveyVK: Joi.string().required().description('public key for the surveyor'),
-        registrarVK: Joi.string().required().description('public key for the associated registrar'),
-        payload: Joi.object().required().description('additional information')
-      })
+  validate: {
+    params: {
+      surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
+      surveyorId: Joi.string().required().description('the identity of the surveyor')
     }
+  },
+
+  response: {
+    schema: Joi.object().keys({
+      surveyorId: Joi.string().required().description('identifier for the surveyor'),
+      surveyVK: Joi.string().required().description('public key for the surveyor'),
+      registrarVK: Joi.string().required().description('public key for the associated registrar'),
+      payload: Joi.object().required().description('additional information')
+    })
+  }
 }
 
 /*
@@ -139,30 +138,30 @@ v1.create =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Creates a new surveyor',
   tags: [ 'api' ],
 
-  validate:
-    { params:
-      { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor') },
-      payload: Joi.object().optional().description('additional information')
+  validate: {
+    params: {
+      surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor')
     },
+    payload: Joi.object().optional().description('additional information')
+  },
 
-  response:
-    { schema: Joi.object().keys(
-      {
-        surveyorId: Joi.string().required().description('identifier for the surveyor'),
-        surveyVK: Joi.string().required().description('public key for the surveyor'),
-        registrarVK: Joi.string().required().description('public key for the associated registrar'),
-        payload: Joi.object().optional().description('additional information')
-      })
-    }
+  response: {
+    schema: Joi.object().keys({
+      surveyorId: Joi.string().required().description('identifier for the surveyor'),
+      surveyVK: Joi.string().required().description('public key for the surveyor'),
+      registrarVK: Joi.string().required().description('public key for the associated registrar'),
+      payload: Joi.object().optional().description('additional information')
+    })
+  }
 }
 
 /*
@@ -187,9 +186,7 @@ v1.update =
     payload = enumerate(runtime, surveyorType, payload)
     if (!payload) return reply(boom.badData('no available currencies'))
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { payload: payload }
-            }
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: { payload: payload } }
     await surveyors.update({ surveyorId: surveyor.surveyorId }, state, { upsert: false })
 
     if (surveyorType === 'contribution') {
@@ -205,32 +202,31 @@ v1.update =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Updates a surveyor',
   tags: [ 'api' ],
 
-  validate:
-    { params:
-      { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
-        surveyorId: Joi.string().required().description('the identity of the surveyor')
-      },
-      payload: Joi.object().optional().description('additional information')
+  validate: {
+    params: {
+      surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
+      surveyorId: Joi.string().required().description('the identity of the surveyor')
     },
+    payload: Joi.object().optional().description('additional information')
+  },
 
-  response:
-    { schema: Joi.object().keys(
-      {
-        surveyorId: Joi.string().required().description('identifier for the surveyor'),
-        surveyVK: Joi.string().required().description('public key for the surveyor'),
-        registrarVK: Joi.string().required().description('public key for the associated registrar'),
-        payload: Joi.object().optional().description('additional information')
-      })
-    }
+  response: {
+    schema: Joi.object().keys({
+      surveyorId: Joi.string().required().description('identifier for the surveyor'),
+      surveyVK: Joi.string().required().description('public key for the surveyor'),
+      registrarVK: Joi.string().required().description('public key for the associated registrar'),
+      payload: Joi.object().optional().description('additional information')
+    })
+  }
 }
 
 /*
@@ -255,12 +251,13 @@ v1.phase1 =
 
     entry = await credentials.findOne({ uId: uId, registrarId: registrar.registrarId })
 
-    f = { contribution:
+    f = {
+      contribution:
             async function () {
               if (!entry) return reply(boom.notFound('personaId not valid: ' + uId))
             },
 
-          voting:
+      voting:
             async function () {
               var viewing
               var viewings = runtime.db.get('viewings', debug)
@@ -272,15 +269,15 @@ v1.phase1 =
 
               if (viewing.surveyorIds.indexOf(surveyorId) === -1) return reply(boom.notFound('viewingId not valid(3): ' + uId))
             }
-        }[surveyor.surveyorType]
+    }[surveyor.surveyorType]
     if ((!!f) && (await f())) return
 
     now = underscore.now()
     signature = surveyor.sign(uId)
     runtime.newrelic.recordCustomEvent('sign',
-                                       { surveyorId: surveyor.surveyorId,
-                                         surveyorType: surveyor.surveyorType,
-                                         duration: underscore.now() - now })
+      { surveyorId: surveyor.surveyorId,
+        surveyorType: surveyor.surveyorType,
+        duration: underscore.now() - now })
 
     reply(underscore.extend({ signature: signature, payload: surveyor.payload }, surveyor.publicInfo()))
   }
@@ -289,24 +286,23 @@ v1.phase1 =
   description: 'Generates an initialization response for a surveyor',
   tags: [ 'api' ],
 
-  validate:
-    { params:
-      { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
-        surveyorId: Joi.string().required().description('the identity of the surveyor'),
-        uId: Joi.string().hex().length(31).required().description('the universally-unique identifier')
-      }
-    },
-
-  response:
-    { schema: Joi.object().keys(
-      {
-        surveyorId: Joi.string().required().description('identifier for the surveyor'),
-        surveyVK: Joi.string().required().description('public key for the surveyor'),
-        registrarVK: Joi.string().required().description('public key for the associated registrar'),
-        signature: Joi.string().required().description('initialization response for the surveyor'),
-        payload: Joi.object().optional().description('additional information')
-      })
+  validate: {
+    params: {
+      surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
+      surveyorId: Joi.string().required().description('the identity of the surveyor'),
+      uId: Joi.string().hex().length(31).required().description('the universally-unique identifier')
     }
+  },
+
+  response: {
+    schema: Joi.object().keys({
+      surveyorId: Joi.string().required().description('identifier for the surveyor'),
+      surveyVK: Joi.string().required().description('public key for the surveyor'),
+      registrarVK: Joi.string().required().description('public key for the associated registrar'),
+      signature: Joi.string().required().description('initialization response for the surveyor'),
+      payload: Joi.object().optional().description('additional information')
+    })
+  }
 }
 
 /*
@@ -328,9 +324,9 @@ v1.phase2 =
       now = underscore.now()
       result = surveyor.verify(proof)
       runtime.newrelic.recordCustomEvent('verify',
-                                         { surveyorId: surveyor.surveyorId,
-                                           surveyorType: surveyor.surveyorType,
-                                           duration: underscore.now() - now })
+        { surveyorId: surveyor.surveyorId,
+          surveyorType: surveyor.surveyorType,
+          duration: underscore.now() - now })
       data = JSON.parse(result.data)
     } catch (ex) {
       return reply(boom.badData('invalid surveyor proof: ' + JSON.stringify(proof)))
@@ -344,7 +340,8 @@ v1.phase2 =
     }
 
     response = { submissionId: submissionId }
-    f = { contribution:
+    f = {
+      contribution:
             async function () {
               var schema = Joi.object().keys({ viewingId: Joi.string().guid().required() })
               var validity = Joi.validate(data.report, schema)
@@ -352,7 +349,7 @@ v1.phase2 =
               if (validity.error) return reply(boom.badData(validity.error))
             },
 
-          voting:
+      voting:
             async function () {
               var schema = Joi.object().keys({ publisher: braveJoi.string().publisher().required() })
               var validity = Joi.validate(data, schema)
@@ -361,12 +358,10 @@ v1.phase2 =
 
               await runtime.queue.send(debug, 'voting-report', underscore.extend({ surveyorId: surveyor.parentId }, data))
             }
-        }[surveyor.surveyorType]
+    }[surveyor.surveyorType]
     if ((!!f) && (await f())) return
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { response: response }
-            }
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: { response: response } }
     await submissions.update({ submissionId: submissionId }, state, { upsert: true })
 
     reply(response)
@@ -376,14 +371,14 @@ v1.phase2 =
   description: 'Submits a completed report',
   tags: [ 'api' ],
 
-  validate:
-    { params:
-      { surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
-        surveyorId: Joi.string().required().description('the identity of the surveyor')
-      },
-
-      payload: { proof: Joi.string().required().description('report information and proof') }
+  validate: {
+    params: {
+      surveyorType: Joi.string().valid('contribution', 'voting').required().description('the type of the surveyor'),
+      surveyorId: Joi.string().required().description('the identity of the surveyor')
     },
+
+    payload: { proof: Joi.string().required().description('report information and proof') }
+  },
 
   response:
     { schema: Joi.object().keys({ submissionId: Joi.string().required().description('verification submissionId') }) }
@@ -401,12 +396,15 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
   surveyor.surveyorType = surveyorType
   surveyor.payload = payload
 
-  state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-            $set: underscore.extend({ surveyorType: surveyorType,
-                                      active: surveyorType !== 'contribution',
-                                      available: true,
-                                      payload: payload }, surveyor)
-          }
+  state = {
+    $currentDate: { timestamp: { $type: 'timestamp' } },
+    $set: underscore.extend({
+      surveyorType: surveyorType,
+      active: surveyorType !== 'contribution',
+      available: true,
+      payload: payload
+    }, surveyor)
+  }
   if (parentId) state.$set.parentId = parentId
   await surveyors.update({ surveyorId: surveyor.surveyorId }, state, { upsert: true })
 
@@ -466,17 +464,20 @@ var provision = async function (debug, runtime, surveyorId) {
     viewers.forEach(async function (viewing) {
       var state
 
-      var params = { surveyorId: entry.surveyorId,
-                     avail: entry.surveyors.length,
-                     viewingId: viewing.viewingId,
-                     needed: viewing.count }
+      var params = {
+        surveyorId: entry.surveyorId,
+        avail: entry.surveyors.length,
+        viewingId: viewing.viewingId,
+        needed: viewing.count
+      }
       if (viewing.surveyorIds.length >= params.needed) return debug('fixup not needed', params)
 
       if (params.avail < params.needed) return debug('fixup not possible', params)
 
-      state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                $set: { surveyorIds: underscore.shuffle(entry.surveyors).slice(0, viewing.count) }
-              }
+      state = {
+        $currentDate: { timestamp: { $type: 'timestamp' } },
+        $set: { surveyorIds: underscore.shuffle(entry.surveyors).slice(0, viewing.count) }
+      }
       await viewings.update({ viewingId: viewing.viewingId }, state, { upsert: true })
 
       return debug('fixup complete', params)
@@ -497,20 +498,22 @@ module.exports.initialize = async function (debug, runtime) {
   var configurations = process.env.SURVEYORS || 'contribution,voting'
   var surveyors = runtime.db.get('surveyors', debug)
 
-  runtime.db.checkIndices(debug,
-  [ { category: surveyors,
+  runtime.db.checkIndices(debug, [
+    {
+      category: surveyors,
       name: 'surveyors',
       property: 'surveyorId',
       empty: { surveyorId: '', surveyorType: '', active: false, available: false, payload: {}, timestamp: bson.Timestamp.ZERO },
-      unique: [ { surveyorId: 0 } ],
+      unique: [ { surveyorId: 1 } ],
       others: [ { surveyorType: 1 }, { active: 1 }, { available: 1 }, { timestamp: 1 } ]
     },
-    { category: runtime.db.get('submissions', debug),
+    {
+      category: runtime.db.get('submissions', debug),
       name: 'submissions',
       property: 'submissionId',
       empty: { submissionId: '', surveyorId: '', timestamp: bson.Timestamp.ZERO },
-      unique: [ { submissionId: 0 } ],
-      others: [ { surveyorId: 0 }, { timestamp: 1 } ]
+      unique: [ { submissionId: 1 } ],
+      others: [ { surveyorId: 1 }, { timestamp: 1 } ]
     }
   ])
 

@@ -16,7 +16,7 @@ var create = async function (runtime, prefix, params) {
   }
   filename = prefix + dateformat(underscore.now(), datefmt2) + extension
   options.metadata = { 'content-disposition': 'attachment; filename="' + filename + '"' }
-  return await runtime.db.file(params.reportId, 'w', options)
+  return runtime.db.file(params.reportId, 'w', options)
 }
 
 var exports = {}
@@ -60,9 +60,7 @@ exports.workers = {
           continue
         }
 
-        state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                  $set: underscore.omit(entry, 'publisher')
-                }
+        state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: underscore.omit(entry, 'publisher') }
         await publishers.update({ publisher: entry.publisher }, state, { upsert: true })
 
         data.push({ publisher: entry.publisher, message: '' })
@@ -73,8 +71,7 @@ exports.workers = {
         debug('reports', { report: 'patch-publisher-rulesets', reason: ex.toString() })
         file.close()
       }
-      return runtime.notify(debug, { channel: '#ledger-bot',
-                                     text: authority + ' patch-publisher-rulesets completed' })
+      return runtime.notify(debug, { channel: '#ledger-bot', text: authority + ' patch-publisher-rulesets completed' })
     },
 
 /* retrieve the entire ruleset
@@ -113,8 +110,7 @@ exports.workers = {
       file = await create(runtime, 'publisher-rulesets-', payload)
       if (format === 'json') {
         await file.write(JSON.stringify(data, null, 2), true)
-        return runtime.notify(debug, { channel: '#ledger-bot',
-                                       text: authority + ' report-publisher-rulesets completed' })
+        return runtime.notify(debug, { channel: '#ledger-bot', text: authority + ' report-publisher-rulesets completed' })
       }
 
       try { await file.write(json2csv({ data: data }), true) } catch (ex) {

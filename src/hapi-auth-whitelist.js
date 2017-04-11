@@ -19,6 +19,16 @@ const internals = {
   implementation: (server, options) => { return { authenticate: exports.authenticate } }
 }
 
+exports.authorizedP = (ipaddr) => {
+  if ((authorizedAddrs) &&
+        ((authorizedAddrs.indexOf(ipaddr) !== -1) ||
+         (underscore.find(authorizedBlocks, (block) => { block.contains(ipaddr) })))) return true
+}
+
+exports.ipaddr = (request) => {
+  return (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(',')[0].trim()
+}
+
 exports.authenticate = (request, reply) => {
   var ipaddr = (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(',')[0].trim()
 

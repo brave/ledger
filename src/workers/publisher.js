@@ -20,9 +20,10 @@ exports.workers = {
       var publishers = runtime.db.get('publishers', debug)
       var tld = tldjs.getPublicSuffix(publisher)
 
-      state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                $set: underscore.extend({ tld: tld }, underscore.omit(payload, [ 'publisher' ]))
-              }
+      state = {
+        $currentDate: { timestamp: { $type: 'timestamp' } },
+        $set: underscore.extend({ tld: tld }, underscore.omit(payload, [ 'publisher' ]))
+      }
       await publishers.update({ publisher: publisher }, state, { upsert: true })
     }
 }

@@ -10,11 +10,7 @@ exports.routes = async function (debug, runtime) {
   var routes = [
     { method: 'GET',
       path: '/',
-      config:
-        { handler: function (request, reply) {
-          reply('ack.')
-        }
-      }
+      config: { handler: function (request, reply) { reply('ack.') } }
     }
   ]
 

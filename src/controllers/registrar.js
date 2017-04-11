@@ -37,13 +37,12 @@ v1.read =
   validate:
     { params: { registrarType: Joi.string().valid('persona', 'viewing').required().description('the type of the registrar') } },
 
-  response:
-    { schema: Joi.object().keys(
-      {
-        registrarVK: Joi.string().required().description('public key'),
-        payload: Joi.object().required().description('additional information')
-      })
-    }
+  response: {
+    schema: Joi.object().keys({
+      registrarVK: Joi.string().required().description('public key'),
+      payload: Joi.object().required().description('additional information')
+    })
+  }
 }
 
 /*
@@ -70,9 +69,7 @@ v1.update =
     validity = Joi.validate(payload, schema)
     if (validity.error) return reply(boom.badData(validity.error))
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { payload: payload }
-            }
+    state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: { payload: payload } }
     await registrars.update({ registrarId: registrar.registrarId }, state, { upsert: false })
 
     registrar.payload = payload
@@ -80,27 +77,26 @@ v1.update =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Updates a registrar',
   tags: [ 'api' ],
 
-  validate:
-    { params: { registrarType: Joi.string().valid('persona', 'viewing').required().description('the type of the registrar') },
-      payload: Joi.object().optional().description('additional information')
-    },
+  validate: {
+    params: { registrarType: Joi.string().valid('persona', 'viewing').required().description('the type of the registrar') },
+    payload: Joi.object().optional().description('additional information')
+  },
 
-  response:
-    { schema: Joi.object().keys(
-      {
-        registrarVK: Joi.string().required().description('public key'),
-        payload: Joi.object().required().description('additional information')
-      })
-    }
+  response: {
+    schema: Joi.object().keys({
+      registrarVK: Joi.string().required().description('public key'),
+      payload: Joi.object().required().description('additional information')
+    })
+  }
 }
 
 /*
@@ -123,22 +119,25 @@ v1.create =
     entry = await credentials.findOne({ uId: uId, registrarId: registrar.registrarId })
     if (entry) return reply(boom.badData(registrar.registrarType + ' credential exists: ' + uId))
 
-    f = { persona:
+    f = {
+      persona:
             async function () {
-              var keychain = Joi.object().keys({ xpub: braveJoi.string().Xpub().required(),
-                                                 path: Joi.string().optional(),
-                                                 encryptedXprv: Joi.string().optional() })
-              var schema = Joi.object().keys(
-                { proof: Joi.string().required().description('credential registration request'),
+              var keychain = Joi.object().keys({
+                xpub: braveJoi.string().Xpub().required(),
+                path: Joi.string().optional(),
+                encryptedXprv: Joi.string().optional()
+              })
+              var schema = Joi.object().keys({
+                proof: Joi.string().required().description('credential registration request'),
 // TBD: remove the backup keychain after the new client percolates out
-                  keychains: Joi.object().keys({ user: keychain.required(), backup: keychain.optional() })
-                }).required()
+                keychains: Joi.object().keys({ user: keychain.required(), backup: keychain.optional() })
+              }).required()
               var validity = Joi.validate(request.payload, schema)
 
               if (validity.error) return reply(boom.badData(validity.error))
             },
 
-          viewing:
+      viewing:
             async function () {
               var diagnostic, surveyorIds, viewing
               var viewings = runtime.db.get('viewings', debug)
@@ -155,21 +154,23 @@ v1.create =
               }
               underscore.extend(response, { surveyorIds: viewing.surveyorIds, satoshis: viewing.satoshis })
             }
-         }[registrar.registrarType]
+    }[registrar.registrarType]
     if ((!!f) && (await f())) return
 
     try {
       now = underscore.now()
       verification = registrar.register(proof)
-      runtime.newrelic.recordCustomEvent('register',
-                                         { registrarId: registrar.registrarId,
-                                           registrarType: registrar.registrarType,
-                                           duration: underscore.now() - now })
+      runtime.newrelic.recordCustomEvent('register', {
+        registrarId: registrar.registrarId,
+        registrarType: registrar.registrarType,
+        duration: underscore.now() - now
+      })
     } catch (ex) {
       return reply(boom.badData('invalid registrar proof: ' + JSON.stringify(proof)))
     }
 
-    f = { persona:
+    f = {
+      persona:
             async function () {
               var host, prefix, result, wallet
               var keychains = request.payload.keychains
@@ -188,22 +189,23 @@ v1.create =
                 return reply(boom.badImplementation('wallet creation failed'))
               }
 
-              state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                        $set: underscore.extend({ keychains: keychains }, underscore.pick(wallet, [ 'address', 'provider' ]))
-                      }
+              state = {
+                $currentDate: { timestamp: { $type: 'timestamp' } },
+                $set: underscore.extend({ keychains: keychains }, underscore.pick(wallet, [ 'address', 'provider' ]))
+              }
               await wallets.update({ paymentId: paymentId }, state, { upsert: true })
 
               await runtime.queue.send(debug, 'persona-report', underscore.extend({ paymentId: paymentId }, state.$set))
 
               underscore.extend(response, { wallet: { paymentId: paymentId, address: wallet.address },
-                                            payload: registrar.payload
-                                          })
+                payload: registrar.payload
+              })
             },
 
-          viewing:
+      viewing:
             async function () {
             }
-         }[registrar.registrarType]
+    }[registrar.registrarType]
     if ((!!f) && (await f())) return
 
     state = { $currentDate: { timestamp: { $type: 'timestamp' } } }
@@ -216,29 +218,28 @@ v1.create =
   description: 'Registers a user',
   tags: ['api'],
 
-  validate:
-    { params:
-      { registrarType: Joi.string().valid('persona', 'viewing').required().description('the type of the registrar'),
-        uId: Joi.string().hex().length(31).required().description('the universally-unique identifier')
-      },
-      payload: Joi.object(
-        { proof: Joi.string().required().description('credential registration request')
-        }).unknown(true).required()
+  validate: {
+    params: {
+      registrarType: Joi.string().valid('persona', 'viewing').required().description('the type of the registrar'),
+      uId: Joi.string().hex().length(31).required().description('the universally-unique identifier')
     },
+    payload: Joi.object().keys({
+      proof: Joi.string().required().description('credential registration request')
+    }).unknown(true).required()
+  },
 
-  response:
-    { schema: Joi.object().keys(
-      {
-        verification: Joi.string().required().description('credential registration response'),
-        wallet: Joi.object().keys(
-        { paymentId: Joi.string().guid().required().description('opaque identifier for BTC address'),
-          address: braveJoi.string().base58().required().description('BTC address')
-        }).optional().description('wallet information'),
-        payload: Joi.object().optional().description('additional information'),
-        surveyorIds: Joi.array().min(1).items(Joi.string()).optional().description('allowed surveyors'),
-        satoshis: Joi.number().integer().min(1).optional().description('contribution amount in satoshis')
-      })
-    }
+  response: {
+    schema: Joi.object().keys({
+      verification: Joi.string().required().description('credential registration response'),
+      wallet: Joi.object().keys({
+        paymentId: Joi.string().guid().required().description('opaque identifier for BTC address'),
+        address: braveJoi.string().base58().required().description('BTC address')
+      }).optional().description('wallet information'),
+      payload: Joi.object().optional().description('additional information'),
+      surveyorIds: Joi.array().min(1).items(Joi.string()).optional().description('allowed surveyors'),
+      satoshis: Joi.number().integer().min(1).optional().description('contribution amount in satoshis')
+    })
+  }
 }
 
 module.exports.routes = [
@@ -252,19 +253,21 @@ module.exports.initialize = async function (debug, runtime) {
   var configurations = process.env.REGISTRARS || 'persona:1,viewing:2'
   var registrars = runtime.db.get('registrars', debug)
 
-  runtime.db.checkIndices(debug,
-  [ { category: registrars,
+  runtime.db.checkIndices(debug, [
+    {
+      category: registrars,
       name: 'registrars',
       property: 'registrarId',
       empty: { registrarId: '', registrarType: '', payload: {}, timestamp: bson.Timestamp.ZERO },
-      unique: [ { registrarId: 0 } ],
+      unique: [ { registrarId: 1 } ],
       others: [ { registrarType: 1 }, { timestamp: 1 } ]
     },
-    { category: runtime.db.get('credentials', debug),
+    {
+      category: runtime.db.get('credentials', debug),
       name: 'credentials',
-      property: 'registrarId_0_uId',
+      property: 'registrarId_1_uId',
       empty: { uId: '', registrarId: 0, timestamp: bson.Timestamp.ZERO },
-      unique: [ { registrarId: 0, uId: 0 } ],
+      unique: [ { registrarId: 1, uId: 1 } ],
       others: [ { timestamp: 1 } ]
     }
   ])
@@ -290,9 +293,10 @@ module.exports.initialize = async function (debug, runtime) {
     } else {
       registrar = new anonize.Registrar()
       payload = (registrarType === 'persona') ? { adFree: { fee: { USD: 5.00 }, days: 30 } } : {}
-      state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-                $set: underscore.extend({ registrarType: registrarType, payload: payload }, registrar)
-              }
+      state = {
+        $currentDate: { timestamp: { $type: 'timestamp' } },
+        $set: underscore.extend({ registrarType: registrarType, payload: payload }, registrar)
+      }
       await registrars.update({ registrarId: registrarId }, state, { upsert: true })
     }
 

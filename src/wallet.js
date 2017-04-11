@@ -16,8 +16,10 @@ var Wallet = function (config, runtime) {
   this.config = config.wallet
   this.config.environment = config.wallet.bitgo.environment
   this.runtime = runtime
-  this.bitgo = new (require('bitgo')).BitGo({ accessToken: config.wallet.bitgo.accessToken,
-                                              env: config.wallet.bitgo.environment || 'prod' })
+  this.bitgo = new (require('bitgo')).BitGo({
+    accessToken: config.wallet.bitgo.accessToken,
+    env: config.wallet.bitgo.environment || 'prod'
+  })
   debug('environment: ' + this.config.environment)
 
   if (!onceonlyP) {
@@ -33,31 +35,36 @@ Wallet.prototype.create = async function (prefix, label, keychains) {
   var xpubs = []
 
   xpubs[0] = underscore.pick(await this.bitgo.keychains().add(underscore.extend({ label: 'user' }, keychains.user)), [ 'xpub' ])
-  xpubs[1] = underscore.pick(await this.bitgo.keychains().add({ label: 'unspendable',
-                                                                xpub: this.config.bitgo.unspendableXpub }), [ 'xpub' ])
+  xpubs[1] = underscore.pick(await this.bitgo.keychains().add({
+    label: 'unspendable',
+    xpub: this.config.bitgo.unspendableXpub
+  }), [ 'xpub' ])
   xpubs[2] = underscore.pick(await this.bitgo.keychains().createBitGo({}), [ 'xpub' ])
 
-  result = await this.bitgo.wallets().add({ label: label,
-                                            m: 2,
-                                            n: 3,
-                                            keychains: xpubs,
-                                            enterprise: this.config.bitgo.enterpriseId,
-                                            disableTransactionNotifications: true
-                                          })
+  result = await this.bitgo.wallets().add({
+    label: label,
+    m: 2,
+    n: 3,
+    keychains: xpubs,
+    enterprise: this.config.bitgo.enterpriseId,
+    disableTransactionNotifications: true
+  })
   result.wallet.provider = 'bitgo'
 
   result.addWebhook({ url: prefix + '/callbacks/bitgo/sink', type: 'transaction', numConfirmations: 1 }, function (err) {
     if (err) debug('wallet addWebhook', { label: label, message: err.toString() })
 
-    result.setPolicyRule({ id: 'com.brave.limit.velocity.30d',
-                           type: 'velocityLimit',
-                           condition: { type: 'velocity',
-                                        amount: 7000000,
-                                        timeWindow: 30 * 86400,
-                                        groupTags: [],
-                                        excludeTags: []
-                                      },
-                           action: { type: 'deny' } }, function (err) {
+    result.setPolicyRule({
+      id: 'com.brave.limit.velocity.30d',
+      type: 'velocityLimit',
+      condition: {
+        type: 'velocity',
+        amount: 7000000,
+        timeWindow: 30 * 86400,
+        groupTags: [],
+        excludeTags: []
+      },
+      action: { type: 'deny' } }, function (err) {
       if (err) debug('wallet setPolicyRule', { label: label, message: err.toString() })
     })
   })
@@ -69,7 +76,7 @@ Wallet.prototype.balances = async function (info) {
   var f = Wallet.providers[info.provider].balances
 
   if (!f) throw new Error('provider ' + info.provider + ' balances not supported')
-  return await f.bind(this)(info)
+  return f.bind(this)(info)
 }
 
 Wallet.prototype.purchaseBTC = function (info, amount, currency) {
@@ -88,11 +95,17 @@ Wallet.prototype.recurringBTC = function (info, amount, currency) {
   return f.bind(this)(info, amount, currency)
 }
 
-Wallet.prototype.recover = async function (info, original, passphrase) {
-  var f = Wallet.providers[info.provider].recover
+Wallet.prototype.transferP = function (info) {
+  var f = Wallet.providers[info.provider].transferP
 
-  if (!f) throw new Error('provider ' + info.provider + ' recover not supported')
-  return await f.bind(this)(info, original, passphrase)
+  return ((f) && f.bind(this)(info))
+}
+
+Wallet.prototype.transfer = async function (info, satoshis) {
+  var f = Wallet.providers[info.provider].transfer
+
+  if (!f) throw new Error('provider ' + info.provider + ' transfer not supported')
+  return f.bind(this)(info, satoshis)
 }
 
 Wallet.prototype.compareTx = function (unsignedHex, signedHex) {
@@ -116,14 +129,14 @@ Wallet.prototype.submitTx = async function (info, signedTx) {
   var f = Wallet.providers[info.provider].submitTx
 
   if (!f) throw new Error('provider ' + info.provider + ' submitTx not supported')
-  return await f.bind(this)(info, signedTx)
+  return f.bind(this)(info, signedTx)
 }
 
 Wallet.prototype.unsignedTx = async function (info, amount, currency, balance) {
   var f = Wallet.providers[info.provider].unsignedTx
 
   if (!f) throw new Error('provider ' + info.provider + ' unsignedTx not supported')
-  return await f.bind(this)(info, amount, currency, balance)
+  return f.bind(this)(info, amount, currency, balance)
 }
 
 Wallet.prototype.rates = {}
@@ -149,7 +162,7 @@ var maintenance = async function (config, runtime) {
   var suffix = crypto.createHmac('sha256', config.bitcoin_average.secretKey).update(prefix).digest('hex')
   var signature = prefix + '.' + suffix
 
-  var fetch = async function(url, props, schema) {
+  var fetch = async function (url, props, schema) {
     var result, validity
 
     result = await braveHapi.wreck.get(url, props)
@@ -220,33 +233,15 @@ Wallet.providers.bitgo = {
   balances: async function (info) {
     var wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: info.address })
 
-    return { balance: wallet.balance(),
-             spendable: wallet.spendableBalance(),
-             confirmed: wallet.confirmedBalance(),
-             unconfirmed: wallet.unconfirmedReceives()
-           }
-  },
+    var estimate = await this.bitgo.estimateFee({ numBlocks: 6 })
+    this.runtime.notify(debug, { estimate: estimate })
 
-  recover: async function (info, original, passphrase) {
-    var amount, fee
-    var wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: original.address })
-
-    amount = wallet.balance()
-    try {
-      // NB: this should always throw!
-      await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase })
-    } catch (ex) {
-      fee = ex.result && ex.result.fee
-      if (!fee) throw ex
-
-      amount -= fee
-      // check for dust
-      if (amount <= 2730) return 0
-
-      await wallet.sendCoins({ address: info.address, amount: amount, walletPassphrase: passphrase, fee: fee })
+    return {
+      balance: wallet.balance(),
+      spendable: wallet.spendableBalance(),
+      confirmed: wallet.confirmedBalance(),
+      unconfirmed: wallet.unconfirmedReceives()
     }
-
-    return amount
   },
 
   submitTx: async function (info, signedTx) {
@@ -278,6 +273,29 @@ Wallet.providers.bitgo = {
     }
 
     return result
+  },
+
+  transferP: function (info) {
+    return ((!!this.config.bitgo.fundingAddress) && (!!this.config.bitgo.fundingPassphrase))
+  },
+
+  transfer: async function (info, satoshis) {
+    var result, wallet
+
+    if (!this.config.bitgo.fundingAddress) throw new Error('no funding address configured')
+    if (!this.config.bitgo.fundingPassphrase) throw new Error('no funding passphrase configured')
+
+    wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: this.config.bitgo.fundingAddress })
+    try {
+      result = await wallet.sendCoins({ address: info.address,
+        amount: satoshis,
+        walletPassphrase: this.config.bitgo.fundingPassphrase
+      })
+
+      return underscore.pick(result, [ 'hash', 'fee' ])
+    } catch (ex) {
+      throw new Error(ex.error)
+    }
   },
 
   unsignedTx: async function (info, amount, currency, balance) {
@@ -324,21 +342,22 @@ Wallet.providers.coinbase = {
     // TBD: for the moment...
     if (currency !== 'USD') throw new Error('currency ' + currency + ' payment not supported')
 
-    return ({ buyURL: `https://buy.coinbase.com?crypto_currency=BTC` +
+    return ({
+      buyURL: `https://buy.coinbase.com?crypto_currency=BTC` +
                 `&code=${this.config.coinbase.widgetCode}` +
                 `&amount=${amount}` +
                 `&address=${info.address}`
-            })
+    })
   },
 
   recurringBTC: function (info, amount, currency) {
     // TBD: for the moment...
     if (currency !== 'USD') throw new Error('currency ' + currency + ' payment not supported')
 
-    return ({ recurringURL: `https://www.coinbase.com/recurring_payments/new?type=send&repeat=monthly` +
+    return ({recurringURL: `https://www.coinbase.com/recurring_payments/new?type=send&repeat=monthly` +
                 `&amount=${amount}` +
                 `&currency=${currency}` +
                 `&to=${info.address}`
-            })
+    })
   }
 }

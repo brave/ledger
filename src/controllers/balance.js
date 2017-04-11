@@ -59,20 +59,21 @@ v1.create =
     var version = runtime.npminfo.children['ledger-balance'] + '-' + underscore.now()
     var rulesets = runtime.db.get('rulesets', debug)
 
-    state = { $currentDate: { timestamp: { $type: 'timestamp' } },
-              $set: { ruleset: request.payload, version: version, type: 'balance/providers' }
-            }
+    state = {
+      $currentDate: { timestamp: { $type: 'timestamp' } },
+      $set: { ruleset: request.payload, version: version, type: 'balance/providers' }
+    }
     await rulesets.update({ rulesetId: rulesetId }, state, { upsert: true })
 
     reply(version)
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Defines the list of ledger balance providers',
   tags: [ 'api' ],
@@ -100,11 +101,11 @@ v1.delete =
   }
 },
 
-  auth:
-    { strategy: 'session',
-      scope: [ 'ledger' ],
-      mode: 'required'
-    },
+  auth: {
+    strategy: 'session',
+    scope: [ 'ledger' ],
+    mode: 'required'
+  },
 
   description: 'Resets the list of ledger balance providers',
   tags: [ 'api' ],
@@ -150,8 +151,9 @@ module.exports.initialize = async function (debug, runtime) {
   var entry, validity
   var rulesets = runtime.db.get('rulesets', debug)
 
-  runtime.db.checkIndices(debug,
-  [ { category: rulesets,
+  runtime.db.checkIndices(debug, [
+    {
+      category: rulesets,
       name: 'rulesets',
       property: 'rulesetId',
       empty: { rulesetId: 0, type: '', version: '', timestamp: bson.Timestamp.ZERO },
