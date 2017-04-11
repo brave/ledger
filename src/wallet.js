@@ -98,7 +98,7 @@ Wallet.prototype.recurringBTC = function (info, amount, currency) {
 Wallet.prototype.transferP = function (info) {
   var f = Wallet.providers[info.provider].transferP
 
-  return ((f) && f.bind(this)(info))
+  return ((!!f) && (f.bind(this)(info)))
 }
 
 Wallet.prototype.transfer = async function (info, satoshis) {
@@ -232,9 +232,6 @@ Wallet.providers = {}
 Wallet.providers.bitgo = {
   balances: async function (info) {
     var wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: info.address })
-
-    var estimate = await this.bitgo.estimateFee({ numBlocks: 6 })
-    this.runtime.notify(debug, { estimate: estimate })
 
     return {
       balance: wallet.balance(),
