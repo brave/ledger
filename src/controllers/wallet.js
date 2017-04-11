@@ -187,11 +187,13 @@ v1.write =
     result = { paymentStamp: now, satoshis: result.satoshis, votes: votes, hash: result.hash }
     reply(result)
 
-    await runtime.queue.send(debug, 'contribution-report', underscore.extend({ paymentId: paymentId,
+    await runtime.queue.send(debug, 'contribution-report', underscore.extend({
+      paymentId: paymentId,
       address: wallet.address,
       surveyorId: surveyorId,
       viewingId: viewingId,
-      fee: fee }, result))
+      fee: fee
+    }, result))
   }
 },
 
@@ -282,9 +284,9 @@ v2.recover =
       await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
     }
 
-    result = underscore.extend({ address: wallet.address,
-      keychains: { user: underscore.pick(wallet.keychains.user,
-                                                                    [ 'xpub', 'encryptedXprv', 'path' ]) },
+    result = underscore.extend({
+      address: wallet.address,
+      keychains: { user: underscore.pick(wallet.keychains.user, [ 'xpub', 'encryptedXprv', 'path' ]) },
       satoshis: balances.confirmed
     })
 

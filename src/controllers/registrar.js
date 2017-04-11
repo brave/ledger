@@ -197,7 +197,8 @@ v1.create =
 
               await runtime.queue.send(debug, 'persona-report', underscore.extend({ paymentId: paymentId }, state.$set))
 
-              underscore.extend(response, { wallet: { paymentId: paymentId, address: wallet.address },
+              underscore.extend(response, {
+                wallet: { paymentId: paymentId, address: wallet.address },
                 payload: registrar.payload
               })
             },

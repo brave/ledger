@@ -117,7 +117,7 @@ v1.populate =
     satoshis = Math.round((amount / rate) * 1e8)
     await runtime.queue.send(debug, 'population-report',
                              underscore.extend({ paymentId: wallet.paymentId, address: address, satoshis: satoshis },
-                             request.payload))
+                                               request.payload))
     reply({ satoshis: satoshis })
   }
 },

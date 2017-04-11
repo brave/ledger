@@ -274,10 +274,11 @@ v1.phase1 =
 
     now = underscore.now()
     signature = surveyor.sign(uId)
-    runtime.newrelic.recordCustomEvent('sign',
-      { surveyorId: surveyor.surveyorId,
-        surveyorType: surveyor.surveyorType,
-        duration: underscore.now() - now })
+    runtime.newrelic.recordCustomEvent('sign', {
+      surveyorId: surveyor.surveyorId,
+      surveyorType: surveyor.surveyorType,
+      duration: underscore.now() - now
+    })
 
     reply(underscore.extend({ signature: signature, payload: surveyor.payload }, surveyor.publicInfo()))
   }
@@ -323,10 +324,11 @@ v1.phase2 =
     try {
       now = underscore.now()
       result = surveyor.verify(proof)
-      runtime.newrelic.recordCustomEvent('verify',
-        { surveyorId: surveyor.surveyorId,
-          surveyorType: surveyor.surveyorType,
-          duration: underscore.now() - now })
+      runtime.newrelic.recordCustomEvent('verify', {
+        surveyorId: surveyor.surveyorId,
+        surveyorType: surveyor.surveyorType,
+        duration: underscore.now() - now
+      })
       data = JSON.parse(result.data)
     } catch (ex) {
       return reply(boom.badData('invalid surveyor proof: ' + JSON.stringify(proof)))
