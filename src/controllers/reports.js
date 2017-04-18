@@ -14,7 +14,7 @@ var v2 = {}
  */
 
 v1.getFile =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var file, reader, writer
     var debug = braveHapi.debug(module, request)
@@ -56,7 +56,7 @@ v2.publisher = {}
  */
 
 v2.publisher.rulesets =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var authority = request.auth.credentials.provider + ':' + request.auth.credentials.profile.username
     var reportId = uuid.v4().toLowerCase()

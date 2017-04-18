@@ -15,7 +15,7 @@ var v2 = {}
  */
 
 v1.read =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var balances, result, state, wallet
     var amount = request.query.amount
@@ -106,7 +106,7 @@ v1.read =
  */
 
 v1.write =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var fee, now, params, result, state, surveyor, surveyorIds, votes, wallet
     var debug = braveHapi.debug(module, request)
@@ -225,7 +225,7 @@ v1.write =
  */
 
 v1.recover =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var original, satoshis, wallet
     var debug = braveHapi.debug(module, request)
@@ -266,7 +266,7 @@ v1.recover =
 }
 
 v2.recover =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var balances, result, state, wallet
     var debug = braveHapi.debug(module, request)

@@ -10,7 +10,7 @@ var v1 = {}
  */
 
 v1.login = {
-  handler: function (runtime) {
+  handler: (runtime) => {
     return async function (request, reply) {
       var debug = braveHapi.debug(module, request)
       var credentials = request.auth.credentials
@@ -19,7 +19,7 @@ v1.login = {
 
       var gh = new GitHub({ version: '3.0.0', debug: false })
       gh.authenticate({ type: 'token', token: credentials.token })
-      gh.user.getTeams({}, function (err, data) {
+      gh.user.getTeams({}, (err, data) => {
         if (err) return reply('Oops!')
 
         credentials.scope = []
@@ -58,7 +58,7 @@ v1.login = {
  */
 
 v1.logout = {
-  handler: function (runtime) {
+  handler: (runtime) => {
     return async function (request, reply) {
       var debug = braveHapi.debug(module, request)
       var credentials = request.auth.credentials

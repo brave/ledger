@@ -29,7 +29,7 @@ var rulesetEntry = async function (request, runtime) {
  */
 
 v1.read =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entry = await rulesetEntry(request, runtime)
 
@@ -52,7 +52,7 @@ v1.read =
  */
 
 v1.create =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var state
     var debug = braveHapi.debug(module, request)
@@ -90,7 +90,7 @@ v1.create =
  */
 
 v1.delete =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var debug = braveHapi.debug(module, request)
     var rulesets = runtime.db.get('rulesets', debug)
@@ -122,7 +122,7 @@ v1.delete =
  */
 
 v1.version =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entry = await rulesetEntry(request, runtime)
 

@@ -66,7 +66,7 @@ var schemaV2 = Joi.object().keys(underscore.extend({}, publisherV2, propertiesV2
  */
 
 v1.read =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var consequential = request.query.consequential
     var entry = consequential ? (await rulesetEntryV2(request, runtime)) : (await rulesetEntry(request, runtime))
@@ -86,7 +86,7 @@ v1.read =
 }
 
 v2.read =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entries, modifiers, query, result
     var debug = braveHapi.debug(module, request)
@@ -136,7 +136,7 @@ v2.read =
  */
 
 v2.create =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var result
     var debug = braveHapi.debug(module, request)
@@ -184,7 +184,7 @@ v2.create =
  */
 
 v2.update =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var authority = request.auth.credentials.provider + ':' + request.auth.credentials.profile.username
     var reportId = uuid.v4().toLowerCase()
@@ -219,7 +219,7 @@ v2.update =
  */
 
 v2.write =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var result, state
     var debug = braveHapi.debug(module, request)
@@ -261,7 +261,7 @@ v2.write =
  */
 
 v2.delete =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entry
     var debug = braveHapi.debug(module, request)
@@ -298,7 +298,7 @@ v2.delete =
  */
 
 v1.version =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entry = await rulesetEntry(request, runtime)
 
@@ -322,7 +322,7 @@ v1.version =
  */
 
 v1.identity =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var result
     var url = request.query.url
@@ -349,7 +349,7 @@ v1.identity =
 }
 
 v2.identity =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var result
     var entry = await rulesetEntryV2(request, runtime)
@@ -417,7 +417,7 @@ v2.identity =
  */
 
 v1.verified =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entries, result
     var limit = request.query.limit
@@ -447,7 +447,7 @@ v1.verified =
 }
 
 v2.verified =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entries, modifiers, query, result
     var debug = braveHapi.debug(module, request)
@@ -544,7 +544,7 @@ module.exports.initialize = async function (debug, runtime) {
   validity = Joi.validate(entry ? entry.ruleset : ledgerPublisher.ruleset, ledgerPublisher.schema)
   if (validity.error) throw new Error(validity.error)
 
-  ledgerPublisher.getRules(function (err, rules) {
+  ledgerPublisher.getRules((err, rules) => {
     var validity
 
     if (err) runtime.newrelic.noticeError(err, { ledgerPublisher: 'getRules' })
@@ -566,8 +566,8 @@ module.exports.initialize = async function (debug, runtime) {
     var properties = categories[category]
     var tags = [ underscore.rest(path.parse(category).name.split('-')).join('-') ]
 
-    underscore.keys(properties).forEach(function (facet) {
-      properties[facet].forEach(function (value) {
+    underscore.keys(properties).forEach((facet) => {
+      properties[facet].forEach((value) => {
         try {
           publishers.insert({ publisher: value, facet: facet, exclude: true, tags: tags, timestamp: bson.Timestamp() })
         } catch (ex) {

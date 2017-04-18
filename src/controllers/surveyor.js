@@ -35,11 +35,11 @@ var server = async function (request, reply, runtime) {
   return surveyor
 }
 
-var registrarType = function (surveyorType) {
+var registrarType = (surveyorType) => {
   return { contribution: 'persona', voting: 'viewing' }[surveyorType]
 }
 
-var validate = function (surveyorType, payload) {
+var validate = (surveyorType, payload) => {
   var fee = Joi.object().keys({ USD: Joi.number().min(1).required() }).unknown(true).required()
   var satoshis = Joi.number().integer().min(1).optional()
   var votes = Joi.number().integer().min(1).max(100).required()
@@ -51,14 +51,14 @@ var validate = function (surveyorType, payload) {
 }
 module.exports.validate = validate
 
-var enumerate = function (runtime, surveyorType, payload) {
+var enumerate = (runtime, surveyorType, payload) => {
   var satoshis
   var params = (payload || {}).adFree
 
   if ((surveyorType !== 'contribution') || (typeof params === 'undefined')) return payload
 
   params = payload.adFree
-  underscore.keys(params.fee).forEach(function (currency) {
+  underscore.keys(params.fee).forEach((currency) => {
     var amount = params.fee[currency]
     var rate = runtime.wallet.rates[currency.toUpperCase()]
 
@@ -78,7 +78,7 @@ module.exports.enumerate = enumerate
  */
 
 v1.read =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var surveyor
     var debug = braveHapi.debug(module, request)
@@ -118,7 +118,7 @@ v1.read =
  */
 
 v1.create =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var surveyor, validity
     var debug = braveHapi.debug(module, request)
@@ -169,7 +169,7 @@ v1.create =
  */
 
 v1.update =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var state, surveyor, validity
     var debug = braveHapi.debug(module, request)
@@ -234,7 +234,7 @@ v1.update =
  */
 
 v1.phase1 =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entry, f, registrar, now, signature, surveyor
     var debug = braveHapi.debug(module, request)
@@ -311,7 +311,7 @@ v1.phase1 =
  */
 
 v1.phase2 =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var data, entry, f, response, now, result, state, submissionId, surveyor
     var debug = braveHapi.debug(module, request)
@@ -537,7 +537,7 @@ module.exports.initialize = async function (debug, runtime) {
       if ((surveyorType === 'contribution') ||
             ((typeof process.env.DYNO !== 'undefined') && (process.env.DYNO !== 'web.1'))) continue
 
-      setTimeout(function () { provision(debug, runtime, surveyor.surveyorId) }, 5 * 1000)
+      setTimeout(() => { provision(debug, runtime, surveyor.surveyorId) }, 5 * 1000)
     }
   }
 }

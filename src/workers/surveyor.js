@@ -37,7 +37,7 @@ var daily = async function (debug, runtime) {
   })
 
   next = interval.next().getTime()
-  setTimeout(function () { daily(debug, runtime) }, next - underscore.now())
+  setTimeout(() => { daily(debug, runtime) }, next - underscore.now())
   debug('daily', 'running again ' + moment(next).fromNow())
 }
 
@@ -69,7 +69,7 @@ exports.initialize = async function (debug, runtime) {
 
   interval = cron.parseExpression(schedule, { })
   next = interval.next().getTime()
-  setTimeout(function () { daily(debug, runtime) }, next - underscore.now())
+  setTimeout(() => { daily(debug, runtime) }, next - underscore.now())
   debug('daily', 'running ' + moment(next).fromNow())
 }
 

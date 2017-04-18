@@ -9,7 +9,7 @@ var uuid = require('uuid')
 
 var v1 = {}
 
-var server = function (request, runtime) {
+var server = (request, runtime) => {
   var registrarType = request.params.registrarType
 
   return runtime.registrars[registrarType]
@@ -20,7 +20,7 @@ var server = function (request, runtime) {
  */
 
 v1.read =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var registrar
 
@@ -50,7 +50,7 @@ v1.read =
  */
 
 v1.update =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var days, fee, schema, state, registrar, validity
     var debug = braveHapi.debug(module, request)
@@ -104,7 +104,7 @@ v1.update =
  */
 
 v1.create =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var entry, f, registrar, now, state, verification
     var debug = braveHapi.debug(module, request)

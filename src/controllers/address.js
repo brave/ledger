@@ -13,7 +13,7 @@ var v1 = {}
  */
 
 v1.validate =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var balances, paymentId, state, wallet
     var debug = braveHapi.debug(module, request)
@@ -89,7 +89,7 @@ var compareCharge = async function (debug, actor, chargeId, amount, currency) {
 }
 
 v1.populate =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var rate, result, satoshis, wallet
     var debug = braveHapi.debug(module, request)

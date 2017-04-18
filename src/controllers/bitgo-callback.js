@@ -18,7 +18,7 @@ var v1 = {}
  */
 
 v1.sink =
-{ handler: function (runtime) {
+{ handler: (runtime) => {
   return async function (request, reply) {
     var wallet, state
     var debug = braveHapi.debug(module, request)
