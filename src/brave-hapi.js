@@ -6,7 +6,6 @@
 
 var path = require('path')
 var ProxyAgent = require('proxy-agent')
-try { var tldjs = require('tldjs') } catch (ex) {}
 var underscore = require('underscore')
 var wreck = require('wreck')
 
@@ -20,20 +19,11 @@ exports.debug = function (info, request) {
 }
 
 exports.domainCompare = function (a, b) {
-  if (!tldjs) return labelsCompare(a, b)
-
-  if (!tldjs.isValid(a)) {
-    return (tldjs.isValid(b) ? (-1) : 0)
-  } else if (!tldjs.isValid(b)) return 1
-
-  return (labelsCompare(tldjs.getDomain(a), tldjs.getDomain(b)) ||
-          labelsCompare(tldjs.getSubdomain(a) || '', tldjs.getSubdomain(b) || ''))
-}
-
-var labelsCompare = function (a, b) {
   var d
 
+  if (!a) a = ''
   a = a.split('.').reverse()
+  if (!b) b = ''
   b = b.split('.').reverse()
 
   while (true) {
