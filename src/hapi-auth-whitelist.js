@@ -30,13 +30,20 @@ exports.ipaddr = (request) => {
 }
 
 exports.authenticate = (request, reply) => {
+  var result
   var ipaddr = (request.headers['x-forwarded-for'] || request.info.remoteAddress).split(',')[0].trim()
 
   if ((authorizedAddrs) &&
         (authorizedAddrs.indexOf(ipaddr) === -1) &&
         (!underscore.find(authorizedBlocks, (block) => { block.contains(ipaddr) }))) return reply(boom.notAcceptable())
 
-  reply.continue({ credentials: { ipaddr: ipaddr } })
+  try {
+    result = reply.continue({ credentials: { ipaddr: ipaddr } })
+  } catch (ex) {
+/* something odd with reply.continue not allowing any arguments... */
+    result = reply.continue()
+  }
+  return result
 }
 
 exports.register = (server, options, next) => {

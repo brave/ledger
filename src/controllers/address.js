@@ -166,4 +166,5 @@ module.exports.initialize = async function (debug, runtime) {
   ])
 
   await runtime.queue.create('population-report')
+  await runtime.queue.create('wallet-report')
 }

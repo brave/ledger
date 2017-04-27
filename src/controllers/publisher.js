@@ -3,7 +3,6 @@ var braveHapi = require('../brave-hapi')
 var bson = require('bson')
 var Joi = require('joi')
 var ledgerPublisher = require('ledger-publisher')
-var path = require('path')
 var underscore = require('underscore')
 var url = require('url')
 var uuid = require('uuid')
@@ -509,7 +508,7 @@ module.exports.routes = [
 ]
 
 module.exports.initialize = async function (debug, runtime) {
-  var categories, entry, validity
+  var entry, validity
   var publishers = runtime.db.get('publishersV2', debug)
   var rulesets = runtime.db.get('rulesets', debug)
 
@@ -557,23 +556,4 @@ module.exports.initialize = async function (debug, runtime) {
   })
 
   await runtime.queue.create('patch-publisher-rulesets')
-
-  entry = await publishers.findOne({ publisher: 'brave.com', facet: 'domain' })
-  if (entry) return
-
-  categories = ledgerPublisher.getCategories.categories()
-  underscore.keys(categories).forEach((category) => {
-    var properties = categories[category]
-    var tags = [ underscore.rest(path.parse(category).name.split('-')).join('-') ]
-
-    underscore.keys(properties).forEach((facet) => {
-      properties[facet].forEach((value) => {
-        try {
-          publishers.insert({ publisher: value, facet: facet, exclude: true, tags: tags, timestamp: bson.Timestamp() })
-        } catch (ex) {
-          debug('insert failed for publishers', ex)
-        }
-      })
-    })
-  })
 }

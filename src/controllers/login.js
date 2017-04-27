@@ -17,13 +17,13 @@ v1.login = {
 
       if (!request.auth.isAuthenticated) return reply(boom.forbidden())
 
-      var gh = new GitHub({ version: '3.0.0', debug: false })
+      var gh = new GitHub({ debug: false })
       gh.authenticate({ type: 'token', token: credentials.token })
-      gh.user.getTeams({}, (err, data) => {
+      gh.users.getTeams({}, (err, data) => {
         if (err) return reply('Oops!')
 
         credentials.scope = []
-        data.forEach(team => {
+        data.data.forEach(team => {
           if (team.organization.login === runtime.login.organization) credentials.scope.push(team.name)
         })
         if (credentials.scope.length === 0) {
@@ -33,7 +33,7 @@ v1.login = {
 
         debug('login  ' + credentials.provider + ' ' + credentials.profile.email + ': ' + JSON.stringify(credentials.scope))
 
-        request.auth.session.set(credentials)
+        request.cookieAuth.set(credentials)
         reply.redirect(runtime.login.world)
       })
     }
@@ -67,7 +67,7 @@ v1.logout = {
         debug('logout ' + credentials.provider + ' ' + credentials.profile.email + ': ' + JSON.stringify(credentials.scope))
       }
 
-      request.auth.session.clear()
+      request.cookieAuth.clear()
       reply.redirect(runtime.login.bye)
     }
   },

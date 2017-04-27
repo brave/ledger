@@ -28,6 +28,12 @@ server.connection({ port: process.env.PORT })
 
 debug.initialize({ web: { id: server.info.id } })
 
+if (process.env.NODE_ENV !== 'production') {
+  process.on('warning', (warning) => {
+    debug('warning', underscore.pick(warning, [ 'name', 'message', 'stack' ]))
+  })
+}
+
 server.register(
   [ require('bell'),
     require('blipp'),
@@ -127,7 +133,6 @@ server.register(
   server.auth.strategy('simple', 'bearer-access-token', {
     allowQueryToken: true,
     allowMultipleHeaders: false,
-    allowTokenName: 'access_token',
     validateFunc: function (token, callback) {
       var tokenlist = process.env.TOKEN_LIST && process.env.TOKEN_LIST.split(',')
 
@@ -221,6 +226,7 @@ var main = async function (id) {
   server.route({ method: 'GET', path: '/favicon.ico', handler: { file: './documentation/favicon.ico' } })
   server.route({ method: 'GET', path: '/favicon.png', handler: { file: './documentation/favicon.png' } })
   server.route({ method: 'GET', path: '/robots.txt', handler: { file: './documentation/robots.txt' } })
+  server.route({ method: 'GET', path: '/assets/{path*}', handler: { file: './documentation/robots.txt' } })
   if (process.env.ACME_CHALLENGE) {
     server.route({
       method: 'GET',
