@@ -22,6 +22,7 @@ var whitelist = require('./hapi-auth-whitelist')
 var npminfo = require(path.join(__dirname, '..', 'package'))
 var runtime = require('./runtime.js')
 runtime.newrelic = newrelic
+runtime.npminfo = underscore.pick(npminfo, 'name', 'version', 'description', 'author', 'license', 'bugs', 'homepage')
 
 var server = new Hapi.Server()
 server.connection({ port: process.env.PORT })
@@ -264,7 +265,6 @@ var main = async function (id) {
           underscore.extend({ server: url.format(runtime.config.server), version: server.version },
                             server.info,
                             { env: underscore.pick(process.env, [ 'DEBUG', 'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ]) }))
-    runtime.npminfo = underscore.pick(npminfo, 'name', 'version', 'description', 'author', 'license', 'bugs', 'homepage')
     runtime.npminfo.children = {}
     runtime.notify(debug, {
       text: require('os').hostname() + ' ' + npminfo.name + '@' + npminfo.version +
