@@ -277,21 +277,27 @@ Wallet.providers.bitgo = {
   },
 
   transfer: async function (info, satoshis) {
-    var result, wallet
+    var balance, result, wallet
 
     if (!this.config.bitgo.fundingAddress) throw new Error('no funding address configured')
     if (!this.config.bitgo.fundingPassphrase) throw new Error('no funding passphrase configured')
 
     wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: this.config.bitgo.fundingAddress })
     try {
-      result = await wallet.sendCoins({ address: info.address,
+      result = await wallet.sendCoins({
+        address: info.address,
         amount: satoshis,
         walletPassphrase: this.config.bitgo.fundingPassphrase
       })
 
-      return underscore.pick(result, [ 'hash', 'fee' ])
+      balance = wallet.confirmedBalance()
+      try {
+        balance = JSON.parse(JSON.stringify(wallet)).spendableConfirmedBalance
+      } catch (ex) { }
+
+      return underscore.extend(result, { remaining: balance })
     } catch (ex) {
-      throw new Error(ex.error)
+      throw new Error(ex.toString())
     }
   },
 
