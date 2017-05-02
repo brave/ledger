@@ -62,11 +62,15 @@ v1.validate =
    PUT /v1/address/{address}/validate
  */
 
-// currently hard-coded to stripe
+// currently hard-coded to stripe in production...
 
 var compareCharge = async function (debug, actor, chargeId, amount, currency) {
   return new Promise((resolve, reject) => {
-    if (actor !== 'authorize.stripe') return reject(new Error('invalid result.actor'))
+    if (actor !== 'authorize.stripe') {
+      if ((process.env.NODE_ENV !== 'production') && (process.env.NODE_ENV === actor)) return resolve()
+
+      return reject(new Error('invalid result.actor'))
+    }
 
     stripe.charges.retrieve(chargeId, (err, charge) => {
       if (err) return reject(err)
