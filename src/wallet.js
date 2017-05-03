@@ -1,6 +1,7 @@
 var bitcoinjs = require('bitcoinjs-lib')
 var braveHapi = require('./brave-hapi')
 var crypto = require('crypto')
+var currencyCodes = require('currency-codes')
 var debug = new (require('sdebug'))('wallet')
 var Joi = require('joi')
 var underscore = require('underscore')
@@ -277,7 +278,7 @@ Wallet.providers.bitgo = {
   },
 
   transfer: async function (info, satoshis) {
-    var balance, result, wallet
+    var balance, currencies, remaining, result, wallet
 
     if (!this.config.bitgo.fundingAddress) throw new Error('no funding address configured')
     if (!this.config.bitgo.fundingPassphrase) throw new Error('no funding passphrase configured')
@@ -294,8 +295,17 @@ Wallet.providers.bitgo = {
       try {
         balance = JSON.parse(JSON.stringify(wallet)).spendableConfirmedBalance
       } catch (ex) { }
+      currencies = [ 'USD', 'EUR', 'GBP' ]
+      remaining = {}
+      currencies.forEach((fiat) => {
+        var currency = currencyCodes.code(fiat)
 
-      return underscore.extend(result, { remaining: balance })
+        if (!Wallet.prototype.rates[fiat]) return
+
+        remaining[fiat] = ((balance * Wallet.prototype.rates[fiat]) / 1e8).toFixed(currency ? currency.digits : 2)
+      })
+
+      return underscore.extend(result, { remaining: remaining })
     } catch (ex) {
       throw new Error(ex.toString())
     }

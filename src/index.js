@@ -247,7 +247,10 @@ var main = async function (id) {
 
         if (i >= 0) {
           p = components[i + 1]
-          version = require(path.join(components.slice(0, i + 2).join(path.sep), 'package.json')).version
+          try {
+            version = require(path.join(components.slice(0, i + 2).join(path.sep), 'package.json')).version
+          } catch (ex) { return }
+
           if (!children[p]) children[p] = version
           else if (Array.isArray(children[p])) {
             if (children[p].indexOf(version) < 0) children[p].push(version)

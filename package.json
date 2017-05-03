@@ -8,9 +8,10 @@
     "lint": "standard",
     "server": "./node_modules/.bin/babel-node src/index.js",
     "start": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node src/index.js",
+    "start-worker": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node --optimize_for_size --max_old_space_size=460 --gc_interval=100 src/worker.js",
     "test": "npm run test-security",
     "test-security": "nsp check",
-    "worker": "DEBUG=*,-babel,-mongo:*,mongo:queries ./node_modules/.bin/babel-node --optimize_for_size --max_old_space_size=460 --gc_interval=100 src/worker.js"
+    "worker": "./node_modules/.bin/babel-node --optimize_for_size --max_old_space_size=460 --gc_interval=100 src/worker.js"
   },
   "repository": {
     "type": "git",
@@ -61,6 +62,7 @@
     "netmask": "1.0.6",
     "node-anonize2-relic": "0.1.6",
     "newrelic": "1.38.2",
+    "@newrelic/native-metrics": "2.1.1",
     "proxy-agent": "^2.0.0",
     "node-slack": "0.0.7",
     "redis": "2.7.1",

@@ -112,6 +112,7 @@ v1.populate =
       result = await compareCharge(debug, actor, transactionId, amount, currency)
       if (result) return reply(boom.badData(result))
     } catch (ex) {
+      runtime.notify(debug, { text: 'retrieve error: ' + ex.toString() })
       debug('retrieve', ex)
       return boom.badGateway(ex.toString())
     }
@@ -150,9 +151,57 @@ v1.populate =
     { schema: { satoshis: Joi.number().integer().min(0).required().description('the populated amount in satoshis') } }
 }
 
+/*
+   PATCH /v1/address/{address}/{transactionId}
+ */
+
+v1.update =
+{ handler: (runtime) => {
+  return async function (request, reply) {
+    var wallet
+    var address = request.params.address
+    var debug = braveHapi.debug(module, request)
+    var wallets = runtime.db.get('wallets', debug)
+
+    wallet = await wallets.findOne({ address: address })
+    if (!wallet) return reply(boom.notFound('invalid address: ' + address))
+
+    await runtime.queue(debug, 'population-update',
+                        underscore.extend({ paymentId: wallet.paymentId }, request.params, request.payload))
+
+    reply({})
+  }
+},
+
+  auth: {
+    strategy: 'simple',
+    mode: 'required'
+  },
+
+  description: 'Updates the "battempt to populate" a BTC address',
+  tags: [ 'api' ],
+
+  validate: {
+    params: {
+      address: braveJoi.string().base58().required().description('BTC address'),
+      transactionId: Joi.string().required().description('transaction-identifier')
+    },
+    query: { access_token: Joi.string().guid().optional() },
+    payload: {
+      status: Joi.string().required().description('updated status'),
+      actor: Joi.string().required().description('authorization agent'),
+      eventId: Joi.string().required().description('event-identifier')
+    }
+  },
+
+  response:
+    { schema: Joi.object().length(0) }
+}
+
 module.exports.routes = [
   braveHapi.routes.async().path('/v1/address/{address}/validate').whitelist().config(v1.validate),
-  braveHapi.routes.async().put().path('/v1/address/{address}/validate').whitelist().config(v1.populate)
+  braveHapi.routes.async().put().path('/v1/address/{address}/validate').whitelist().config(v1.populate),
+  braveHapi.routes.async().patch().path('/v1/address/{address}/{transactionId}').whitelist().config(v1.update)
 ]
 
 module.exports.initialize = async function (debug, runtime) {
@@ -170,5 +219,6 @@ module.exports.initialize = async function (debug, runtime) {
   ])
 
   await runtime.queue.create('population-report')
+  await runtime.queue.create('population-update')
   await runtime.queue.create('wallet-report')
 }

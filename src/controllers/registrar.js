@@ -185,6 +185,7 @@ v1.create =
                 wallet = result.wallet
                 wallet.address = wallet.id
               } catch (ex) {
+                runtime.notify(debug, { text: 'wallet error: ' + ex.toString() })
                 debug('wallet error', ex)
                 return reply(boom.badImplementation('wallet creation failed'))
               }
