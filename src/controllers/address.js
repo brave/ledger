@@ -166,8 +166,8 @@ v1.update =
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
-    await runtime.queue(debug, 'population-update',
-                        underscore.extend({ paymentId: wallet.paymentId }, request.params, request.payload))
+    await runtime.queue.send(debug, 'population-update',
+                             underscore.extend({ paymentId: wallet.paymentId }, request.params, request.payload))
 
     reply({})
   }
