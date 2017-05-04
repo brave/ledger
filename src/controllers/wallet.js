@@ -58,7 +58,11 @@ v1.read =
       underscore.extend(result, runtime.wallet.purchaseBTC(wallet, amount, currency))
       underscore.extend(result, runtime.wallet.recurringBTC(wallet, amount, currency))
       if (refreshP) {
-        result.unsignedTx = await runtime.wallet.unsignedTx(wallet, amount, currency, balances.confirmed)
+        try {
+          result.unsignedTx = await runtime.wallet.unsignedTx(wallet, amount, currency, balances.confirmed)
+        } catch (ex) {
+          return reply(boom.notFound('no such currency: ' + currency))
+        }
 
         if (result.unsignedTx) {
           state = {
