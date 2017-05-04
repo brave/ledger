@@ -1,4 +1,5 @@
 var braveHapi = require('../brave-hapi')
+var braveJoi = require('../brave-joi')
 var bson = require('bson')
 var Joi = require('joi')
 var underscore = require('underscore')
@@ -45,8 +46,11 @@ v1.sink =
   description: 'Webhooks',
   tags: [ 'api' ],
 
-  validate:
-    { payload: Joi.object().keys().unknown(true) },
+  validate: {
+    payload: Joi.object().keys({
+      walletId: braveJoi.string().base58().required().description('BTC address')
+    }).unknown(true)
+  },
 
   response:
     { schema: Joi.object().length(0) }

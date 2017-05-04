@@ -210,8 +210,11 @@ v2.update =
   validate:
     { payload: Joi.array().items(Joi.object().keys(underscore.extend(publisherV2, propertiesV2))).required() },
 
-  response:
-    { schema: Joi.object().keys().unknown(true) }
+  response: {
+    schema: Joi.object().keys({
+      reportURL: Joi.string().uri({ scheme: /https?/ }).optional().description('the URL for an forthcoming report')
+    }).unknown(true)
+  }
 }
 
 /*
@@ -488,8 +491,14 @@ v2.verified =
     }
   },
 
-  response:
-    { schema: Joi.array().items(Joi.object().keys().unknown(true)) }
+  response: {
+    schema: Joi.array().items(Joi.object().keys({
+      publisher: Joi.string().required().description('the publisher identity'),
+      verified: Joi.boolean().required().description('verification status'),
+      tld: Joi.string().required().description('top-level domain'),
+      timestamp: Joi.string().regex(/^[0-9]+$/).required().description('an opaque, monotonically-increasing value')
+    }).unknown(true))
+  }
 }
 
 module.exports.routes = [

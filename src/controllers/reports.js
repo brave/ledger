@@ -90,8 +90,11 @@ v2.publisher.rulesets =
     }
   },
 
-  response:
-    { schema: Joi.object().keys().unknown(true) }
+  response: {
+    schema: Joi.object().keys({
+      reportURL: Joi.string().uri({ scheme: /https?/ }).optional().description('the URL for an forthcoming report')
+    }).unknown(true)
+  }
 }
 
 module.exports.routes = [
