@@ -209,9 +209,7 @@ var maintenance = async function (config, runtime) {
   var compar = (currency) => {
     var ratio = rates[currency] / result2.bpi[currency].rate_float
 
-    return
-
-    if ((ratio < 0.985) || (ratio > 1.015)) {
+    if ((ratio < 0.9) || (ratio > 1.1)) {
       throw new Error('maintenance error(5): ' + currency + ' ' + rates[currency] + ' vs. ' + result2.bpi[currency].rate_float)
     }
   }
