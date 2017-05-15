@@ -10,11 +10,9 @@ a _persona_ is an anonymous identity -- it identifies a set of browsing behavior
 From the Ledger's perspective,
 the most important property of a persona is the value of its `Bravery` setting.
 At present,
-there are two possible values `ad-free` and `ad-replacement`.
+there is one possible value, `ad-free`.
 If the browsing experience is `ad-free`,
-then third-party advertisements are not displayed by the browser;
-otherwise,
-third-party advertisements may be replaced by the browser.
+then third-party advertisements are not displayed by the browser.
 
 ## Behavior
 
@@ -35,11 +33,8 @@ There are two ways in which "money enters the system":
 
 - an advertiser makes a payment commensurate with the aggregate impressions of advertisements served by Brave Software.
 
-There are two ways in which "money leaves the system":
-
-- a persona with a `Bravery` setting of `ad-replacement` receives a percentage of the advertiser payments;
-
-- a publisher receives a share of the aggregated contributions associated with
+At present, there is one way in which "money leaves the system":
+a publisher receives a share of the aggregated contributions associated with
 the viewing habits of personas who visit that publisher's site.
 
 Of course,
@@ -153,19 +148,3 @@ then site "X" should be twice as likely to be selected for a ballot as site "Y".
 
 <img src='ad-free.png' />
 
-### Ad-Replacement: Peanut-Buttering Process
-The total payments from advertisers are aggregated into one sum,
-and the total views from the `ad-replacement` personas are aggregated into a weighted list for publishers.
-From the total payment,
-our ad-match partner takes a share (15%),
-Brave Software takes a share (15%),
-a certain percentage of the total payment is reserved for `ad-replacement` personas (15%),
-and the remaining amount is allocated to the publishers (e.g., 55%).
-The payment to each publisher is then calculated using the weighted-ratio method.
-In order to enhance privacy,
-the payment to each `ad-replacement` persona are calculated independently of the actual impressions served to each persona --
-Brave Software does not keep track of which personas are served which impressions.
-
-At the end of each reconciliation period (e.g., every 30 days since client initialization),
-the accounting server performs the _peanut-butter process_ in order to determine the amount to fund
-both personas with a `Bravery` setting of `ad-replacement`, and publishers.
