@@ -8,7 +8,7 @@ var v1 = {}
 
 var rulesetId = 2
 
-var rulesetEntry = async function (request, runtime) {
+var rulesetEntry = async (request, runtime) => {
   var entry
   var debug = braveHapi.debug(module, request)
   var version = runtime.npminfo.children['ledger-balance']
@@ -30,7 +30,7 @@ var rulesetEntry = async function (request, runtime) {
 
 v1.read =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entry = await rulesetEntry(request, runtime)
 
     reply(entry.ruleset)
@@ -53,7 +53,7 @@ v1.read =
 
 v1.create =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var state
     var debug = braveHapi.debug(module, request)
     var version = runtime.npminfo.children['ledger-balance'] + '-' + underscore.now()
@@ -91,7 +91,7 @@ v1.create =
 
 v1.delete =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var debug = braveHapi.debug(module, request)
     var rulesets = runtime.db.get('rulesets', debug)
 
@@ -123,7 +123,7 @@ v1.delete =
 
 v1.version =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entry = await rulesetEntry(request, runtime)
 
     reply(entry.version)
@@ -147,7 +147,7 @@ module.exports.routes = [
   braveHapi.routes.async().get().path('/v1/balance/providers/version').config(v1.version)
 ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   var entry, validity
   var rulesets = runtime.db.get('rulesets', debug)
 

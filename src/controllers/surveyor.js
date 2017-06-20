@@ -10,7 +10,7 @@ var v1 = {}
 
 var slop = 35
 
-var server = async function (request, reply, runtime) {
+var server = async (request, reply, runtime) => {
   var entry, surveyor
   var debug = braveHapi.debug(module, request)
   var surveyorType = request.params.surveyorType
@@ -79,7 +79,7 @@ module.exports.enumerate = enumerate
 
 v1.read =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var surveyor
     var debug = braveHapi.debug(module, request)
     var surveyorType = request.params.surveyorType
@@ -119,7 +119,7 @@ v1.read =
 
 v1.create =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var surveyor, validity
     var debug = braveHapi.debug(module, request)
     var surveyorType = request.params.surveyorType
@@ -170,7 +170,7 @@ v1.create =
 
 v1.update =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var state, surveyor, validity
     var debug = braveHapi.debug(module, request)
     var surveyorType = request.params.surveyorType
@@ -235,7 +235,7 @@ v1.update =
 
 v1.phase1 =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entry, f, registrar, now, signature, surveyor
     var debug = braveHapi.debug(module, request)
     var surveyorId = request.params.surveyorId
@@ -253,12 +253,12 @@ v1.phase1 =
 
     f = {
       contribution:
-            async function () {
+            async () => {
               if (!entry) return reply(boom.notFound('personaId not valid: ' + uId))
             },
 
       voting:
-            async function () {
+            async () => {
               var viewing
               var viewings = runtime.db.get('viewings', debug)
 
@@ -312,7 +312,7 @@ v1.phase1 =
 
 v1.phase2 =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var data, entry, f, response, now, result, state, submissionId, surveyor
     var debug = braveHapi.debug(module, request)
     var proof = request.payload.proof
@@ -344,7 +344,7 @@ v1.phase2 =
     response = { submissionId: submissionId }
     f = {
       contribution:
-            async function () {
+            async () => {
               var schema = Joi.object().keys({ viewingId: Joi.string().guid().required() })
               var validity = Joi.validate(data.report, schema)
 
@@ -352,7 +352,7 @@ v1.phase2 =
             },
 
       voting:
-            async function () {
+            async () => {
               var schema = Joi.object().keys({ publisher: braveJoi.string().publisher().required() })
               var validity = Joi.validate(data, schema)
 
@@ -386,7 +386,7 @@ v1.phase2 =
     { schema: Joi.object().keys({ submissionId: Joi.string().required().description('verification submissionId') }) }
 }
 
-var create = async function (debug, runtime, surveyorType, payload, parentId) {
+var create = async (debug, runtime, surveyorType, payload, parentId) => {
   var registrar, state, surveyor
   var surveyors = runtime.db.get('surveyors', debug)
 
@@ -428,7 +428,7 @@ var create = async function (debug, runtime, surveyorType, payload, parentId) {
 }
 module.exports.create = create
 
-var provision = async function (debug, runtime, surveyorId) {
+var provision = async (debug, runtime, surveyorId) => {
   var entries, entry
   var surveyors = runtime.db.get('surveyors', debug)
 
@@ -439,7 +439,7 @@ var provision = async function (debug, runtime, surveyorId) {
   } else {
     entries = await surveyors.find({ surveyorType: 'contribution', available: true }, { limit: 1000, sort: { timestamp: -1 } })
   }
-  entries.forEach(async function (entry) {
+  entries.forEach(async (entry) => {
     var count, fixupP, surveyor, viewers
     var viewings = runtime.db.get('viewings', debug)
 
@@ -463,7 +463,7 @@ var provision = async function (debug, runtime, surveyorId) {
     if (!fixupP) return
 
     viewers = await viewings.find({ surveyorId: entry.surveyorId })
-    viewers.forEach(async function (viewing) {
+    viewers.forEach(async (viewing) => {
       var state
 
       var params = {
@@ -495,7 +495,7 @@ module.exports.routes = [
   braveHapi.routes.async().put().path('/v1/surveyor/{surveyorType}/{surveyorId}').config(v1.phase2)
 ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   var entry, i, service, services, surveyor, surveyorType
   var configurations = process.env.SURVEYORS || 'contribution,voting'
   var surveyors = runtime.db.get('surveyors', debug)

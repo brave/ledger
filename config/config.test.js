@@ -11,6 +11,7 @@ module.exports =
     { accessToken       : ''
     , enterpriseId      : ''
     , environment       : 'test'
+    , refundAddress     : ''
     , settlementAddress : ''
     , unspendableXpub   : ''
     }

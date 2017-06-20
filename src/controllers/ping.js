@@ -9,7 +9,7 @@ var v1 = {}
 
 v1.ping = {
   handler: (runtime) => {
-    return async function (request, reply) {
+    return async (request, reply) => {
       reply(runtime.npminfo)
     }
   },

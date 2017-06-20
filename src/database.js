@@ -71,7 +71,7 @@ DB.prototype.get = function (collection, debug) {
 }
 
 DB.prototype.checkIndices = async function (debug, entries) {
-  entries.forEach(async function (entry) {
+  entries.forEach(async (entry) => {
     var doneP, indices
     var category = entry.category
 
@@ -84,15 +84,15 @@ DB.prototype.checkIndices = async function (debug, entries) {
     try {
       if (indices.length === 0) { await category.insert(entry.empty) }
 
-      (entry.unique || []).forEach(async function (index) {
+      (entry.unique || []).forEach(async (index) => {
         await category.index(index, { unique: true })
       });
 
-      (entry.others || []).forEach(async function (index) {
+      (entry.others || []).forEach(async (index) => {
         await category.index(index, { unique: false })
       });
 
-      (entry.raw || []).forEach(async function (index) {
+      (entry.raw || []).forEach(async (index) => {
         await category.index(index)
       })
     } catch (ex) {

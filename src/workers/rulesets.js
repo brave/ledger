@@ -4,7 +4,7 @@ var underscore = require('underscore')
 
 var datefmt2 = 'yyyymmdd-HHMMss-l'
 
-var create = async function (runtime, prefix, params) {
+var create = async (runtime, prefix, params) => {
   var extension, filename, options
 
   if (params.format === 'json') {
@@ -34,7 +34,7 @@ exports.workers = {
     }
  */
   'patch-publisher-rulesets':
-    async function (debug, runtime, payload) {
+    async (debug, runtime, payload) => {
       var data, entry, file, i, result, state
       var authority = payload.authority
       var entries = payload.entries
@@ -89,7 +89,7 @@ exports.workers = {
     }
  */
   'report-publisher-rulesets':
-    async function (debug, runtime, payload) {
+    async (debug, runtime, payload) => {
       var data, entries, file, query
       var authority = payload.authority
       var format = payload.format || 'csv'

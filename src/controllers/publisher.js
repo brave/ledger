@@ -12,7 +12,7 @@ var v2 = {}
 
 var rulesetId = 1
 
-var rulesetEntry = async function (request, runtime) {
+var rulesetEntry = async (request, runtime) => {
   var entry
   var debug = braveHapi.debug(module, request)
   var version = runtime.npminfo.children['ledger-publisher']
@@ -28,7 +28,7 @@ var rulesetEntry = async function (request, runtime) {
   return entry
 }
 
-var rulesetEntryV2 = async function (request, runtime) {
+var rulesetEntryV2 = async (request, runtime) => {
   var entryV2 = await rulesetEntry(request, runtime)
   var ruleset = []
 
@@ -66,7 +66,7 @@ var schemaV2 = Joi.object().keys(underscore.extend({}, publisherV2, propertiesV2
 
 v1.read =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var consequential = request.query.consequential
     var entry = consequential ? (await rulesetEntryV2(request, runtime)) : (await rulesetEntry(request, runtime))
 
@@ -86,7 +86,7 @@ v1.read =
 
 v2.read =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entries, modifiers, query, result
     var debug = braveHapi.debug(module, request)
     var excludedOnly = request.query.excludedOnly
@@ -136,7 +136,7 @@ v2.read =
 
 v2.create =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var result
     var debug = braveHapi.debug(module, request)
     var payload = request.payload
@@ -185,7 +185,7 @@ v2.create =
 
 v2.update =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var authority = request.auth.credentials.provider + ':' + request.auth.credentials.profile.username
     var reportId = uuid.v4().toLowerCase()
     var reportURL = url.format(underscore.defaults({ pathname: '/v1/reports/file/' + reportId }, runtime.config.server))
@@ -223,7 +223,7 @@ v2.update =
 
 v2.write =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var result, state
     var debug = braveHapi.debug(module, request)
     var publisher = request.params.publisher
@@ -265,7 +265,7 @@ v2.write =
 
 v2.delete =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entry
     var debug = braveHapi.debug(module, request)
     var publisher = request.params.publisher
@@ -302,7 +302,7 @@ v2.delete =
 
 v1.version =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entry = await rulesetEntry(request, runtime)
 
     reply(entry.version)
@@ -326,7 +326,7 @@ v1.version =
 
 v1.identity =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var result
     var url = request.query.url
 
@@ -353,7 +353,7 @@ v1.identity =
 
 v2.identity =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var result
     var entry = await rulesetEntryV2(request, runtime)
     var url = request.query.url
@@ -421,7 +421,7 @@ v2.identity =
 
 v1.verified =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entries, result
     var limit = request.query.limit
     var tld = request.query.tld || { $exists: true }
@@ -451,7 +451,7 @@ v1.verified =
 
 v2.verified =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entries, modifiers, query, result
     var debug = braveHapi.debug(module, request)
     var limit = parseInt(request.query.limit, 10)
@@ -517,7 +517,7 @@ module.exports.routes = [
   braveHapi.routes.async().get().path('/v2/publisher/identity/verified').config(v2.verified)
 ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   var entry, validity
   var publishers = runtime.db.get('publishersV2', debug)
   var rulesets = runtime.db.get('rulesets', debug)

@@ -4,15 +4,15 @@ var underscore = require('underscore')
 
 var exports = {}
 
-exports.workers = async function (debug, runtime) {
+exports.workers = async (debug, runtime) => {
   var i, names
   var entries = {}
   var listeners = {}
 
-  var register = async function (name, callback) {
+  var register = async (name, callback) => {
     await runtime.queue.create(name)
     runtime.queue.listen(name,
-      runtime.newrelic.createBackgroundTransaction(name, async function (err, debug, payload) {
+      runtime.newrelic.createBackgroundTransaction(name, async (err, debug, payload) => {
         if (err) {
           runtime.notify(debug, { text: name + ' listen error: ' + err.toString() })
           return debug(name + ' listen', err)
@@ -27,7 +27,7 @@ exports.workers = async function (debug, runtime) {
     )
   }
 
-  var router = async function (name) {
+  var router = async (name) => {
     var i, key, names
     var module = require(path.join(__dirname, name))
     var working = module.workers

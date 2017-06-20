@@ -19,9 +19,9 @@ var Queue = function (config, runtime) {
   this.rsmq = new (require('rsmq'))(config.queue)
   this.runtime = runtime
 
-  this.rsmq.on('connect', function () { debug('redis connect') })
-    .on('disconnect', function () { debug('redis disconnect') })
-    .on('error', function (err) {
+  this.rsmq.on('connect', () => { debug('redis connect') })
+    .on('disconnect', () => { debug('redis disconnect') })
+    .on('error', (err) => {
       debug('redis error', err)
       this.runtime.notify(debug, { text: 'redis error: ' + err.toString() })
     })
@@ -38,7 +38,7 @@ Queue.prototype.create = async function (name) {
       }
       if (rsp.indexOf(name) !== -1) return resolve(false)
 
-      self.rsmq.createQueue({ qname: name }, function (err, rsp) {
+      self.rsmq.createQueue({ qname: name }, (err, rsp) => {
         if (err) {
           debug('createQueue ' + name + ' failed')
           return reject(err)
@@ -62,7 +62,7 @@ Queue.prototype.drop = async function (name) {
       }
       if (rsp.indexOf(name) === -1) return resolve(false)
 
-      self.rsmq.deleteQueue({ qname: name }, function (err, rsp) {
+      self.rsmq.deleteQueue({ qname: name }, (err, rsp) => {
         if (err) {
           debug('deleteQueue ' + name + ' failed')
           return reject(err)
@@ -79,7 +79,7 @@ Queue.prototype.send = async function (debug, name, payload) {
   var self = this
 
   return new Promise((resolve, reject) => {
-    self.rsmq.sendMessage({ qname: name, message: JSON.stringify(payload) }, function (err, rsp) {
+    self.rsmq.sendMessage({ qname: name, message: JSON.stringify(payload) }, (err, rsp) => {
       if (err) {
         debug('sendMessage ' + name + ' failed', payload)
         return reject(err)
@@ -97,7 +97,7 @@ Queue.prototype.recv = async function (name) {
   var self = this
 
   return new Promise((resolve, reject) => {
-    self.rsmq.receiveMessage({ qname: name }, function (err, rsp) {
+    self.rsmq.receiveMessage({ qname: name }, (err, rsp) => {
       if (err) {
         debug('receiveMessage ' + name + ' failed')
         return reject(err)
@@ -121,7 +121,7 @@ Queue.prototype.remove = async function (name, id) {
   var self = this
 
   return new Promise((resolve, reject) => {
-    self.rsmq.deleteMessage({ qname: name, id: id }, function (err, rsp) {
+    self.rsmq.deleteMessage({ qname: name, id: id }, (err, rsp) => {
       if (err) {
         debug('deleteMessage ' + name + ' id=' + id + ' failed')
         return reject(err)
@@ -140,13 +140,13 @@ Queue.prototype.listen = function (name, callback) {
   }
   var worker = new (require('rsmq-worker'))(name, options)
 
-  var oops = function (message, err) {
+  var oops = (message, err) => {
     debug(message, err)
     if (err) message += ', ' + err.toString()
     this.runtime.notify(debug, { text: message })
   }
 
-  worker.on('message', function (message, next, id) {
+  worker.on('message', (message, next, id) => {
     var payload
     var rsp = { id: id, message: message }
     var sdebug = new (require('sdebug'))('queue')
@@ -164,9 +164,9 @@ Queue.prototype.listen = function (name, callback) {
     return next()
   })
 
-  worker.on('error', function (err, msg) { oops('redis error: id=' + msg.id, err) })
-    .on('exceeded', function (msg) { oops('redis exceeded: id=' + msg.id) })
-    .on('timeout', function (msg) { oops('redis timeout: id=' + msg.id + ' rc=' + msg.rc) })
+  worker.on('error', (err, msg) => { oops('redis error: id=' + msg.id, err) })
+    .on('exceeded', (msg) => { oops('redis exceeded: id=' + msg.id) })
+    .on('timeout', (msg) => { oops('redis timeout: id=' + msg.id + ' rc=' + msg.rc) })
 
   worker.start()
 }

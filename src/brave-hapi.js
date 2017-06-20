@@ -11,14 +11,14 @@ var wreck = require('wreck')
 
 var exports = {}
 
-exports.debug = function (info, request) {
+exports.debug = (info, request) => {
   var sdebug = new (require('sdebug'))(info.id)
 
   sdebug.initialize({ request: { id: request.id } })
   return sdebug
 }
 
-exports.domainCompare = function (a, b) {
+exports.domainCompare = (a, b) => {
   var d
 
   if (!a) a = ''
@@ -108,7 +108,7 @@ AsyncRoute.prototype.config = function (config) {
 
 exports.routes = { async: AsyncRoute }
 
-var ErrorInspect = function (err) {
+var ErrorInspect = (err) => {
   var i, properties
 
   if (!err) return
@@ -129,7 +129,7 @@ underscore.keys(process.versions).forEach((version) => {
   WreckUA += ' ' + version + '/' + process.versions[version]
 })
 
-var WreckProxy = function (server, opts) {
+var WreckProxy = (server, opts) => {
   var useProxyP
 
   if (!opts) opts = {}
@@ -145,7 +145,7 @@ var WreckProxy = function (server, opts) {
   return { server: server, opts: underscore.extend(opts, { agent: new ProxyAgent(process.env.FIXIE_URL) }) }
 }
 
-var WreckGet = async function (server, opts) {
+var WreckGet = async (server, opts) => {
   var params = WreckProxy(server, opts)
 
   return new Promise((resolve, reject) => {
@@ -157,7 +157,7 @@ var WreckGet = async function (server, opts) {
   })
 }
 
-var WreckPost = async function (server, opts) {
+var WreckPost = async (server, opts) => {
   var params = WreckProxy(server, opts)
 
   return new Promise((resolve, reject) => {
@@ -169,7 +169,7 @@ var WreckPost = async function (server, opts) {
   })
 }
 
-var WreckPut = async function (server, opts) {
+var WreckPut = async (server, opts) => {
   var params = WreckProxy(server, opts)
 
   return new Promise((resolve, reject) => {
@@ -181,7 +181,7 @@ var WreckPut = async function (server, opts) {
   })
 }
 
-var WreckPatch = async function (server, opts) {
+var WreckPatch = async (server, opts) => {
   var params = WreckProxy(server, opts)
 
   return new Promise((resolve, reject) => {

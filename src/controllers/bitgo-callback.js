@@ -20,7 +20,7 @@ var v1 = {}
 
 v1.sink =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var wallet, state
     var debug = braveHapi.debug(module, request)
     var payload = request.payload || {}
@@ -58,7 +58,7 @@ v1.sink =
 
 module.exports.routes = [ braveHapi.routes.async().post().path('/callbacks/bitgo/sink').config(v1.sink) ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   runtime.db.checkIndices(debug, [
     {
       category: runtime.db.get('webhooks', debug),

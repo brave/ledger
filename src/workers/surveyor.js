@@ -5,7 +5,7 @@ var utilities = require('../controllers/surveyor.js')
 
 var interval
 
-var daily = async function (debug, runtime) {
+var daily = async (debug, runtime) => {
   var entries, next
   var surveyorType = 'contribution'
   var surveyors = runtime.db.get('surveyors', debug)
@@ -13,7 +13,7 @@ var daily = async function (debug, runtime) {
   debug('daily', 'running')
 
   entries = await surveyors.find({ surveyorType: surveyorType, active: true }, { limit: 100, sort: { timestamp: -1 } })
-  entries.forEach(async function (entry) {
+  entries.forEach(async (entry) => {
     var payload, surveyor, validity
 
     try {
@@ -43,7 +43,7 @@ var daily = async function (debug, runtime) {
 
 var exports = {}
 
-exports.initialize = async function (debug, runtime) {
+exports.initialize = async (debug, runtime) => {
   var next, schedule
 
   if ((typeof process.env.DYNO !== 'undefined') && (process.env.DYNO !== 'worker.1')) return

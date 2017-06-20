@@ -18,7 +18,7 @@ var npminfo = require(path.join(__dirname, '..', 'package'))
 var runtime = require('./runtime.js')
 runtime.newrelic = newrelic
 
-var main = async function (id) {
+var main = async (id) => {
   var listeners
 
   debug.initialize({ worker: { id: id } })

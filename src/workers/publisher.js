@@ -14,7 +14,7 @@ exports.workers = {
     }
  */
   'publisher-report':
-    async function (debug, runtime, payload) {
+    async (debug, runtime, payload) => {
       var state
       var publisher = payload.publisher
       var publishers = runtime.db.get('publishers', debug)

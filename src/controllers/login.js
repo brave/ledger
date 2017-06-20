@@ -11,7 +11,7 @@ var v1 = {}
 
 v1.login = {
   handler: (runtime) => {
-    return async function (request, reply) {
+    return async (request, reply) => {
       var debug = braveHapi.debug(module, request)
       var credentials = request.auth.credentials
 
@@ -59,7 +59,7 @@ v1.login = {
 
 v1.logout = {
   handler: (runtime) => {
-    return async function (request, reply) {
+    return async (request, reply) => {
       var debug = braveHapi.debug(module, request)
       var credentials = request.auth.credentials
 

@@ -15,7 +15,7 @@ var v2 = {}
 
 v1.getFile =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var file, reader, writer
     var debug = braveHapi.debug(module, request)
     var reportId = request.params.reportId
@@ -57,7 +57,7 @@ v2.publisher = {}
 
 v2.publisher.rulesets =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var authority = request.auth.credentials.provider + ':' + request.auth.credentials.profile.username
     var reportId = uuid.v4().toLowerCase()
     var reportURL = url.format(underscore.defaults({ pathname: '/v1/reports/file/' + reportId }, runtime.config.server))
@@ -102,6 +102,6 @@ module.exports.routes = [
   braveHapi.routes.async().path('/v2/reports/publisher/rulesets').config(v2.publisher.rulesets)
 ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   await runtime.queue.create('report-publisher-rulesets')
 }

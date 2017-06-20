@@ -4,7 +4,7 @@ var underscore = require('underscore')
 
 var exports = {}
 
-exports.routes = async function (debug, runtime) {
+exports.routes = async (debug, runtime) => {
   var i, names
   var entries = {}
   var routes = [
@@ -14,7 +14,7 @@ exports.routes = async function (debug, runtime) {
     }
   ]
 
-  var router = async function (name) {
+  var router = async (name) => {
     var module = require(path.join(__dirname, name))
     var routing = module.routes
 
