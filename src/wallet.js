@@ -65,8 +65,9 @@ Wallet.prototype.create = async function (prefix, label, keychains) {
         groupTags: [],
         excludeTags: []
       },
-      action: { type: 'deny' } }, function (err) {
-      if (err) debug('wallet setPolicyRule', { label: label, message: err.toString() })
+      action: { type: 'deny' }
+    }, function (err) {
+      if (err) debug('wallet setPolicyRule com.brave.limit.velocity.30d', { label: label, message: err.toString() })
     })
   })
 
@@ -156,14 +157,14 @@ var schema2 = Joi.object()
 
               }).unknown(true)
 
-var maintenance = async function (config, runtime) {
+var maintenance = async (config, runtime) => {
   var rates, result1, result2
   var timestamp = Math.round(underscore.now() / 1000)
   var prefix = timestamp + '.' + config.bitcoin_average.publicKey
   var suffix = crypto.createHmac('sha256', config.bitcoin_average.secretKey).update(prefix).digest('hex')
   var signature = prefix + '.' + suffix
 
-  var fetch = async function (url, props, schema) {
+  var fetch = async (url, props, schema) => {
     var result, validity
 
     result = await braveHapi.wreck.get(url, props)
@@ -249,7 +250,7 @@ Wallet.providers.bitgo = {
     result = await wallet.sendTransaction({ tx: signedTx })
 
 // courtesy of https://stackoverflow.com/questions/33289726/combination-of-async-function-await-settimeout#33292942
-    var timeout = function (msec) { return new Promise((resolve) => { setTimeout(resolve, msec) }) }
+    var timeout = (msec) => { return new Promise((resolve) => { setTimeout(resolve, msec) }) }
 
     for (i = 0; i < 5; i++) {
       try {
