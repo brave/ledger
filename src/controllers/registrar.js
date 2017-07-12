@@ -21,7 +21,7 @@ var server = (request, runtime) => {
 
 v1.read =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var registrar
 
     registrar = server(request, runtime)
@@ -51,7 +51,7 @@ v1.read =
 
 v1.update =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var days, fee, schema, state, registrar, validity
     var debug = braveHapi.debug(module, request)
     var payload = request.payload || {}
@@ -105,7 +105,7 @@ v1.update =
 
 v1.create =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var entry, f, registrar, now, state, verification
     var debug = braveHapi.debug(module, request)
     var uId = request.params.uId.toLowerCase()
@@ -121,7 +121,7 @@ v1.create =
 
     f = {
       persona:
-            async function () {
+            async () => {
               var keychain = Joi.object().keys({
                 xpub: braveJoi.string().Xpub().required(),
                 path: Joi.string().optional(),
@@ -138,7 +138,7 @@ v1.create =
             },
 
       viewing:
-            async function () {
+            async () => {
               var diagnostic, surveyorIds, viewing
               var viewings = runtime.db.get('viewings', debug)
 
@@ -171,7 +171,7 @@ v1.create =
 
     f = {
       persona:
-            async function () {
+            async () => {
               var host, prefix, result, wallet
               var keychains = request.payload.keychains
               var paymentId = uuid.v4().toLowerCase()
@@ -192,7 +192,10 @@ v1.create =
 
               state = {
                 $currentDate: { timestamp: { $type: 'timestamp' } },
-                $set: underscore.extend({ keychains: keychains }, underscore.pick(wallet, [ 'address', 'provider' ]))
+/* BEGIN: EXPERIMENTAL/DEPRECATED */
+/* END: EXPERIMENTAL/DEPRECATED */
+                $set: underscore.extend({ keychains: keychains, refundSatoshis: 0 },
+                                        underscore.pick(wallet, [ 'address', 'provider' ]))
               }
               await wallets.update({ paymentId: paymentId }, state, { upsert: true })
 
@@ -205,7 +208,7 @@ v1.create =
             },
 
       viewing:
-            async function () {
+            async () => {
             }
     }[registrar.registrarType]
     if ((!!f) && (await f())) return
@@ -250,7 +253,7 @@ module.exports.routes = [
   braveHapi.routes.async().post().path('/v1/registrar/{registrarType}/{uId}').config(v1.create)
 ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   var entry, i, payload, registrar, registrarId, registrarType, service, services, state
   var configurations = process.env.REGISTRARS || 'persona:1,viewing:2'
   var registrars = runtime.db.get('registrars', debug)

@@ -212,7 +212,7 @@ v2.update =
 
   response: {
     schema: Joi.object().keys({
-      reportURL: Joi.string().uri({ scheme: /https?/ }).optional().description('the URL for an forthcoming report')
+      reportURL: Joi.string().uri({ scheme: /https?/ }).optional().description('the URL for a forthcoming report')
     }).unknown(true)
   }
 }

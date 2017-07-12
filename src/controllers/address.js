@@ -1,3 +1,5 @@
+/* BEGIN: EXPERIMENTAL/DEPRECATED */
+
 var boom = require('boom')
 var braveHapi = require('../brave-hapi')
 var braveJoi = require('../brave-joi')
@@ -14,7 +16,7 @@ var v1 = {}
 
 v1.validate =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var balances, paymentId, state, wallet
     var debug = braveHapi.debug(module, request)
     var address = request.params.address
@@ -64,7 +66,7 @@ v1.validate =
 
 // currently hard-coded to stripe in production...
 
-var compareCharge = async function (debug, actor, chargeId, amount, currency) {
+var compareCharge = async (debug, actor, chargeId, amount, currency) => {
   return new Promise((resolve, reject) => {
     if (actor !== 'authorize.stripe') {
       if ((process.env.NODE_ENV !== 'production') && (process.env.NODE_ENV === actor)) return resolve()
@@ -94,14 +96,15 @@ var compareCharge = async function (debug, actor, chargeId, amount, currency) {
 
 v1.populate =
 { handler: (runtime) => {
-  return async function (request, reply) {
-    var rate, result, satoshis, wallet
+  return async (request, reply) => {
+    var rate, result, satoshis, state, wallet
     var debug = braveHapi.debug(module, request)
     var address = request.params.address
     var actor = request.payload.actor
     var amount = request.payload.amount
     var currency = request.payload.currency
     var fee = request.payload.fee
+    var populates = runtime.db.get('populates', debug)
     var transactionId = request.payload.transactionId
     var wallets = runtime.db.get('wallets', debug)
 
@@ -120,6 +123,14 @@ v1.populate =
 
     rate = runtime.wallet.rates[currency.toUpperCase()]
     satoshis = Math.round((amount / rate) * 1e8)
+
+    state = {
+      $currentDate: { timestamp: { $type: 'timestamp' } },
+      $set: underscore.extends({ paymentId: wallet.paymentId, satoshis: satoshis },
+                               underscore.omit(request.payload, [ 'transactionId' ]))
+    }
+    await populates.update({ address: address, transactionId: transactionId }, state, { upsert: true })
+
     await runtime.queue.send(debug, 'population-report',
                              underscore.extend({ paymentId: wallet.paymentId, address: address, satoshis: satoshis },
                                                request.payload))
@@ -157,19 +168,61 @@ v1.populate =
 
 v1.update =
 { handler: (runtime) => {
-  return async function (request, reply) {
-    var wallet
+  return async (request, reply) => {
+    var balances, entry, paymentId, satoshis, state, wallet
     var address = request.params.address
+    var eventId = request.payload.eventId
+    var status = request.payload.status
+    var transactionId = request.params.transactionId
     var debug = braveHapi.debug(module, request)
+    var populates = runtime.db.get('populates', debug)
     var wallets = runtime.db.get('wallets', debug)
+
+    var done = async () => {
+      await runtime.queue.send(debug, 'population-update',
+                               underscore.extend({ paymentId: paymentId }, request.params, request.payload))
+      reply({})
+    }
 
     wallet = await wallets.findOne({ address: address })
     if (!wallet) return reply(boom.notFound('invalid address: ' + address))
 
-    await runtime.queue.send(debug, 'population-update',
-                             underscore.extend({ paymentId: wallet.paymentId }, request.params, request.payload))
+    paymentId = wallet.paymentId
+    entry = await populates.findOne({ address: address, transactionId: transactionId })
+    if (!entry) {
+      debug('update', { params: request.params, payload: request.payload })
+      runtime.notify(debug, { text: 'no such transaction: ' + transactionId })
+      return done()
+    }
 
-    reply({})
+    if (entry.status === 'closed') {
+      debug('update', { params: request.params, payload: request.payload })
+      runtime.notify(debug, { text: 'transaction already closed: ' + transactionId })
+      return done()
+    }
+
+    state = {
+      $currentDate: { timestamp: { $type: 'timestamp' } },
+      $set: { status: status, eventId: eventId }
+    }
+    await populates.update({ address: address, transactionId: transactionId }, state, { upsert: true })
+    if (status === 'closed') return done()
+
+    balances = await runtime.wallet.balances(wallet)
+    satoshis = balances.confirmed > balances.unconfirmed ? balances.confirmed : balances.unconfirmed
+
+    wallet = await wallets.findOneAndUpdate({
+      $and: [
+        { address: address },
+        { refundSatoshis: { $exists: true, $le: satoshis - entry.satoshis } }
+      ]
+    }, {
+      $currentDate: { timestamp: { $type: 'timestamp' } },
+      $inc: { refundSatoshis: entry.satoshis }
+    }, { upsert: false })
+
+    if (wallet) request.payload.status = 'closed'
+    done()
   }
 },
 
@@ -178,7 +231,7 @@ v1.update =
     mode: 'required'
   },
 
-  description: 'Updates the "battempt to populate" a BTC address',
+  description: 'Updates the "attempt to populate" a BTC address',
   tags: [ 'api' ],
 
   validate: {
@@ -204,7 +257,7 @@ module.exports.routes = [
   braveHapi.routes.async().patch().path('/v1/address/{address}/{transactionId}').whitelist().config(v1.update)
 ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   stripe = require('stripe')(runtime.config.payments.stripe.secretKey)
 
   runtime.db.checkIndices(debug, [
@@ -212,9 +265,38 @@ module.exports.initialize = async function (debug, runtime) {
       category: runtime.db.get('wallets', debug),
       name: 'wallets',
       property: 'paymentId',
-      empty: { paymentId: '', address: '', provider: '', balances: {}, paymentStamp: 0, timestamp: bson.Timestamp.ZERO },
+      empty: {
+        paymentId: '',
+        address: '',
+        provider: '',
+        balances: {},
+        paymentStamp: 0,
+        refundSatoshis: 0,
+        timestamp: bson.Timestamp.ZERO
+      },
       unique: [ { paymentId: 1 }, { address: 1 } ],
-      others: [ { provider: 1 }, { paymentStamp: 1 }, { timestamp: 1 } ]
+      others: [ { provider: 1 }, { paymentStamp: 1 }, { refundSatoshis: 1 }, { timestamp: 1 } ]
+    },
+    {
+      category: runtime.db.get('populates', debug),
+      name: 'populates',
+      property: 'transactionId',
+      empty: {
+        transactionId: '',
+        paymentId: '',
+        address: '',
+        actor: '',
+        status: '',
+        eventId: '',
+        amount: '',
+        currency: '',
+        satoshis: 0,
+        fee: 0,
+        timestamp: bson.Timestamp.ZERO
+      },
+      unique: [ { transactionId: 1 } ],
+      others: [ { paymentId: 1 }, { address: 1 }, { actor: 1 }, { status: 1 }, { eventId: 1 }, { amount: 1 }, { currency: 1 },
+                { satoshis: 1 }, { fee: 1 }, { timestamp: 1 } ]
     }
   ])
 
@@ -222,3 +304,5 @@ module.exports.initialize = async function (debug, runtime) {
   await runtime.queue.create('population-update')
   await runtime.queue.create('wallet-report')
 }
+
+/* END: EXPERIMENTAL/DEPRECATED */

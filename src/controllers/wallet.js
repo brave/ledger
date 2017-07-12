@@ -16,7 +16,7 @@ var v2 = {}
 
 v1.read =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var balances, result, state, wallet
     var amount = request.query.amount
     var balanceP = request.query.balance
@@ -111,7 +111,7 @@ v1.read =
 
 v1.write =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var fee, now, params, result, state, surveyor, surveyorIds, votes, wallet
     var debug = braveHapi.debug(module, request)
     var paymentId = request.params.paymentId.toLowerCase()
@@ -230,7 +230,7 @@ v1.write =
 
 v1.recover =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var original, satoshis, wallet
     var debug = braveHapi.debug(module, request)
     var paymentId = request.params.paymentId.toLowerCase()
@@ -271,7 +271,7 @@ v1.recover =
 
 v2.recover =
 { handler: (runtime) => {
-  return async function (request, reply) {
+  return async (request, reply) => {
     var balances, result, state, wallet
     var debug = braveHapi.debug(module, request)
     var paymentId = request.params.paymentId.toLowerCase()
@@ -326,15 +326,29 @@ module.exports.routes = [
   braveHapi.routes.async().path('/v2/wallet/{paymentId}/recover').config(v2.recover)
 ]
 
-module.exports.initialize = async function (debug, runtime) {
+module.exports.initialize = async (debug, runtime) => {
   runtime.db.checkIndices(debug, [
     {
       category: runtime.db.get('wallets', debug),
       name: 'wallets',
       property: 'paymentId',
-      empty: { paymentId: '', address: '', provider: '', balances: {}, paymentStamp: 0, timestamp: bson.Timestamp.ZERO },
+      empty: {
+        paymentId: '',
+        address: '',
+        provider: '',
+        balances: {},
+        paymentStamp: 0,
+/* BEGIN: EXPERIMENTAL/DEPRECATED */
+        refundSatoshis: 0,
+/* END: EXPERIMENTAL/DEPRECATED */
+        timestamp: bson.Timestamp.ZERO
+      },
       unique: [ { paymentId: 1 }, { address: 1 } ],
-      others: [ { provider: 1 }, { paymentStamp: 1 }, { timestamp: 1 } ]
+      others: [ { provider: 1 }, { paymentStamp: 1 },
+/* BEGIN: EXPERIMENTAL/DEPRECATED */
+                { refundSatoshis: 1 },
+/* END: EXPERIMENTAL/DEPRECATED */
+                { timestamp: 1 } ]
     },
     {
       category: runtime.db.get('viewings', debug),
