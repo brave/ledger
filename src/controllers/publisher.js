@@ -41,6 +41,11 @@ var rulesetEntryV2 = async (request, runtime) => {
     { condition: "TLD === 'gov' || /^go.[a-z][a-z]$/.test(TLD) || /^gov.[a-z][a-z]$/.test(TLD)",
       consequent: 'SLD',
       description: 'governmental sites'
+    },
+    {
+      condition: "SLD === 'keybase.pub'",
+      consequent: 'QLD + \'.\' + SLD',
+      description: 'keybase users'
     }
   ].concat(ruleset)
   return { ruleset: ruleset, version: entryV2.version }

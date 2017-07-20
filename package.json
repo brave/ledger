@@ -54,7 +54,7 @@
     "json-stringify-safe": "^5.0.1",
     "json2csv": "^3.6.2",
     "ledger-balance": "^0.9.0",
-    "ledger-publisher": "^0.9.4",
+    "ledger-publisher": "^0.9.5",
     "moment": "^2.13.0",
     "mongodb": "^2.1.18",
     "monk": "brave/monk",
