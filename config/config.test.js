@@ -11,7 +11,6 @@ module.exports =
     { accessToken       : ''
     , enterpriseId      : ''
     , environment       : 'test'
-    , refundAddress     : ''
     , settlementAddress : ''
     , unspendableXpub   : ''
     }
@@ -21,10 +20,6 @@ module.exports =
     { publicKey         : ''
     , secretKey         : ''
     }
-  }
-, payments              :
-  { stripe              :
-    { secretKey         : process.env.STRIPE_SECRET_KEY }
   }
 , slack                 :
   { webhook             : process.env.SLACK_WEBHOOK

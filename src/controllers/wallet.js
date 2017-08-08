@@ -338,16 +338,10 @@ module.exports.initialize = async (debug, runtime) => {
         provider: '',
         balances: {},
         paymentStamp: 0,
-/* BEGIN: EXPERIMENTAL/DEPRECATED */
-        refundSatoshis: 0,
-/* END: EXPERIMENTAL/DEPRECATED */
         timestamp: bson.Timestamp.ZERO
       },
       unique: [ { paymentId: 1 }, { address: 1 } ],
       others: [ { provider: 1 }, { paymentStamp: 1 },
-/* BEGIN: EXPERIMENTAL/DEPRECATED */
-                { refundSatoshis: 1 },
-/* END: EXPERIMENTAL/DEPRECATED */
                 { timestamp: 1 } ]
     },
     {

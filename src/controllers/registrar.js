@@ -192,10 +192,7 @@ v1.create =
 
               state = {
                 $currentDate: { timestamp: { $type: 'timestamp' } },
-/* BEGIN: EXPERIMENTAL/DEPRECATED */
-/* END: EXPERIMENTAL/DEPRECATED */
-                $set: underscore.extend({ keychains: keychains, refundSatoshis: 0 },
-                                        underscore.pick(wallet, [ 'address', 'provider' ]))
+                $set: underscore.extend({ keychains: keychains }, underscore.pick(wallet, [ 'address', 'provider' ]))
               }
               await wallets.update({ paymentId: paymentId }, state, { upsert: true })
 
