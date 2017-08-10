@@ -12,6 +12,7 @@ if (!newrelic) {
 var boom = require('boom')
 var braveHapi = require('./brave-hapi')
 var debug = new (require('sdebug'))('web')
+var dns = require('dns')
 var Hapi = require('hapi')
 var path = require('path')
 var routes = require('./controllers/index')
@@ -269,7 +270,7 @@ var main = async (id) => {
 
     debug('webserver started',
           underscore.extend({ server: url.format(runtime.config.server), version: server.version },
-                            server.info,
+                            server.info, { dns: dns.getServers() },
                             { env: underscore.pick(process.env, [ 'DEBUG', 'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ]) }))
     runtime.npminfo.children = {}
     runtime.notify(debug, {
