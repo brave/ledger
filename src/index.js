@@ -224,6 +224,7 @@ server.on('log', (event, tags) => {
 })
 
 var main = async (id) => {
+  var resolvers
   var routing = await routes.routes(debug, runtime)
 
   server.route(routing)
@@ -268,9 +269,12 @@ var main = async (id) => {
       throw err
     }
 
+    resolvers = underscore.uniq([ '8.8.8.8', '8.8.4.4' ].concat(dns.getServers()))
+    dns.setServers(resolvers)
+
     debug('webserver started',
           underscore.extend({ server: url.format(runtime.config.server), version: server.version },
-                            server.info, { dns: dns.getServers() },
+                            server.info, { resolvers: resolvers },
                             { env: underscore.pick(process.env, [ 'DEBUG', 'DYNO', 'NEW_RELIC_APP_NAME', 'NODE_ENV' ]) }))
     runtime.npminfo.children = {}
     runtime.notify(debug, {
