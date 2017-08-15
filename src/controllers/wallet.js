@@ -341,8 +341,7 @@ module.exports.initialize = async (debug, runtime) => {
         timestamp: bson.Timestamp.ZERO
       },
       unique: [ { paymentId: 1 }, { address: 1 } ],
-      others: [ { provider: 1 }, { paymentStamp: 1 },
-                { timestamp: 1 } ]
+      others: [ { provider: 1 }, { paymentStamp: 1 }, { timestamp: 1 } ]
     },
     {
       category: runtime.db.get('viewings', debug),
