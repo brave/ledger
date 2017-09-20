@@ -254,7 +254,7 @@ v1.prepTransition =
       return reply(resp)
     }
 
-    // FIXME
+    // TODO change once we relocate to basicattentiontoken.org
     const BAT_LEDGER_SERVER = process.env.BAT_LEDGER_SERVER || 'ledger-staging.brave.com'
     const url = `https://${BAT_LEDGER_SERVER}/v2/wallet/${batPaymentId}`
     result = await braveHapi.wreck.get(url)
@@ -485,4 +485,5 @@ module.exports.initialize = async (debug, runtime) => {
 
   await runtime.queue.create('contribution-report')
   await runtime.queue.create('wallet-report')
+  await runtime.queue.create('transition-report')
 }
