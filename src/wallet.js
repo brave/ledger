@@ -4,9 +4,11 @@ var crypto = require('crypto')
 var currencyCodes = require('currency-codes')
 var debug = new (require('sdebug'))('wallet')
 var Joi = require('joi')
+var NodeCache = require('node-cache')
 var underscore = require('underscore')
 
 var onceonlyP
+var cache = new NodeCache({ stdTTL: 10 * 1000 })
 
 var Wallet = function (config, runtime) {
   if (!(this instanceof Wallet)) return new Wallet(config)
@@ -167,6 +169,9 @@ var maintenance = async (config, runtime) => {
   var fetch = async (url, props, schema) => {
     var result, validity
 
+    result = await cache.get(url)
+    if (result) return result
+
     result = await braveHapi.wreck.get(url, props)
     if (Buffer.isBuffer(result)) result = result.toString()
 // courtesy of https://stackoverflow.com/questions/822452/strip-html-from-text-javascript#822464
@@ -176,6 +181,7 @@ var maintenance = async (config, runtime) => {
     validity = Joi.validate(result, schema)
     if (validity.error) throw new Error(validity.error)
 
+    cache.set(url, result)
     return result
   }
 
