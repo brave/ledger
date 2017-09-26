@@ -8,7 +8,7 @@ var NodeCache = require('node-cache')
 var underscore = require('underscore')
 
 var onceonlyP
-var cache = new NodeCache({ stdTTL: 10 * 1000 })
+var cache = new NodeCache({ stdTTL: 60 * 1000 })
 
 var Wallet = function (config, runtime) {
   if (!(this instanceof Wallet)) return new Wallet(config)
