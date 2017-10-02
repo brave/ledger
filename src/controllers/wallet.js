@@ -254,8 +254,7 @@ v1.prepTransition =
       return reply(resp)
     }
 
-    // TODO change once we relocate to basicattentiontoken.org
-    const BAT_LEDGER_SERVER = process.env.BAT_LEDGER_SERVER || 'ledger-staging.brave.com'
+    const BAT_LEDGER_SERVER = process.env.BAT_LEDGER_SERVER || 'ledger-staging.mercury.basicattentiontoken.org'
     const url = `https://${BAT_LEDGER_SERVER}/v2/wallet/${batPaymentId}`
     result = await braveHapi.wreck.get(url)
     if (Buffer.isBuffer(result)) result = result.toString()
