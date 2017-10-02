@@ -224,6 +224,133 @@ v1.write =
 }
 
 /*
+   GET /v1/wallet/{paymentId}/transition/{batPaymentId}
+ */
+
+v1.prepTransition =
+{ handler: (runtime) => {
+  return async (request, reply) => {
+    var balances, result, state, wallet
+    var debug = braveHapi.debug(module, request)
+    var paymentId = request.params.paymentId.toLowerCase()
+    var batPaymentId = request.params.batPaymentId.toLowerCase()
+    var wallets = runtime.db.get('wallets', debug)
+
+    wallet = await wallets.findOne({ paymentId: paymentId })
+    if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
+
+    balances = await runtime.wallet.balances(wallet)
+
+    if (!underscore.isEqual(balances, wallet.balances)) {
+      state = { $currentDate: { timestamp: { $type: 'timestamp' } }, $set: { balances: balances } }
+      await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+
+      await runtime.queue.send(debug, 'wallet-report', underscore.extend({ paymentId: paymentId }, state.$set))
+    }
+
+    if (balances.unconfirmed > 0) {
+      const resp = boom.serverUnavailable('Cannot transition with unconfirmed balance outstanding.')
+      resp.output.headers['retry-after'] = '30' // higher?
+      return reply(resp)
+    }
+
+    const BAT_LEDGER_SERVER = process.env.BAT_LEDGER_SERVER || 'ledger-staging.mercury.basicattentiontoken.org'
+    const url = `https://${BAT_LEDGER_SERVER}/v2/wallet/${batPaymentId}`
+    result = await braveHapi.wreck.get(url)
+    if (Buffer.isBuffer(result)) result = result.toString()
+    result = JSON.parse(result)
+    const transitionAddr = result.addresses.BTC
+
+    result = await runtime.wallet.unsignedTransitionTx(wallet, balances.confirmed, transitionAddr)
+
+    if (result) {
+      state = {
+        $currentDate: { timestamp: { $type: 'timestamp' } },
+        $set: { unsignedTransitionTx: result.transactionHex }
+      }
+      await wallets.update({ paymentId: paymentId }, state, { upsert: true })
+    } else {
+      return reply(boom.badRequest('Current balance is less than the fee for sending funds'))
+    }
+
+    reply({ unsignedTx: result })
+  }
+},
+
+  description: 'Returns an unsigned transaction to move all funds from the BTC wallet associated with the user',
+  tags: [ 'api' ],
+
+  validate: {
+    params: {
+      paymentId: Joi.string().guid().required().description('identity of the old BTC wallet'),
+      batPaymentId: Joi.string().guid().required().description('identity of the new BAT wallet')
+    }
+  },
+
+  response: {
+    schema: Joi.object().keys({
+      unsignedTx: Joi.object().optional().description('unsigned transition transaction')
+    })
+  }
+}
+
+/*
+   PUT /v1/wallet/{paymentId}/transition
+ */
+
+v1.transition =
+{ handler: (runtime) => {
+  return async (request, reply) => {
+    var fee, result, wallet
+    var debug = braveHapi.debug(module, request)
+    var paymentId = request.params.paymentId.toLowerCase()
+    var signedTx = request.payload.signedTx
+    var wallets = runtime.db.get('wallets', debug)
+
+    wallet = await wallets.findOne({ paymentId: paymentId })
+    if (!wallet) return reply(boom.notFound('no such wallet: ' + paymentId))
+
+    if (wallet.unsignedTransitionTx) {
+      if (!runtime.wallet.compareTx(wallet.unsignedTransitionTx, signedTx)) {
+        runtime.notify(debug, { channel: '#ledger-bot', text: 'comparison check failed on transition tx for paymentId ' + paymentId })
+      }
+    } else {
+      throw new Error('no existing transition tx for the specified paymentId')
+    }
+
+    result = await runtime.wallet.submitTx(wallet, signedTx)
+
+    if (result.status !== 'accepted') return reply(boom.badData(result.status))
+
+    result = { hash: result.hash }
+    reply(result)
+
+    await runtime.queue.send(debug, 'transition-report', underscore.extend({
+      paymentId: paymentId,
+      address: wallet.address,
+      fee: fee
+    }, result))
+  }
+},
+
+  description: 'Transition a BTC wallet associated with the user to a BAT wallet',
+  tags: [ 'api' ],
+
+  validate: {
+    params: { paymentId: Joi.string().guid().required().description('identity of the BTC wallet') },
+    payload: {
+      signedTx: Joi.string().hex().required().description('signed transaction')
+    }
+  },
+
+  response: {
+    schema: Joi.object().keys({
+      hash: Joi.string().hex().required().description('transaction hash')
+    })
+  }
+}
+
+/*
    PUT /v1/wallet/{paymentId}/recover
    GET /v2/wallet/{paymentId}/recover
  */
@@ -323,6 +450,8 @@ module.exports.routes = [
   braveHapi.routes.async().path('/v1/wallet/{paymentId}').config(v1.read),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}').config(v1.write),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover),
+  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/transition').config(v1.transition),
+  braveHapi.routes.async().path('/v1/wallet/{paymentId}/transition/{batPaymentId}').config(v1.prepTransition),
   braveHapi.routes.async().path('/v2/wallet/{paymentId}/recover').config(v2.recover)
 ]
 
@@ -355,4 +484,5 @@ module.exports.initialize = async (debug, runtime) => {
 
   await runtime.queue.create('contribution-report')
   await runtime.queue.create('wallet-report')
+  await runtime.queue.create('transition-report')
 }
