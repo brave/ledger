@@ -143,6 +143,13 @@ Wallet.prototype.unsignedTx = async function (info, amount, currency, balance) {
   return f.bind(this)(info, amount, currency, balance)
 }
 
+Wallet.prototype.unsignedTransitionTx = async function (info, balance, transitionAddr) {
+  var f = Wallet.providers[info.provider].unsignedTransitionTx
+
+  if (!f) throw new Error('provider ' + info.provider + ' unsignedTransitionTx not supported')
+  return f.bind(this)(info, balance, transitionAddr)
+}
+
 Wallet.prototype.rates = {}
 
 var schema1 = Joi.object({}).pattern(/timestamp|[A-Z][A-Z][A-Z]/,
@@ -345,6 +352,39 @@ Wallet.providers.bitgo = {
       } catch (ex) {
         debug('createTransaction', ex)
         this.runtime.newrelic.noticeError(ex, { recipients: recipients, feeRate: estimate.feePerKb })
+        return
+      }
+      if (fee <= transaction.fee) break
+
+      fee = transaction.fee
+    }
+
+    return underscore.extend(underscore.pick(transaction, [ 'transactionHex', 'unspents', 'fee' ]),
+                             { xpub: transaction.walletKeychains[0].xpub })
+  },
+  unsignedTransitionTx: async function (info, balance, transitionAddr) {
+    var i, transaction, wallet, feeRate
+    var estimate = await this.bitgo.estimateFee({ numBlocks: 6 })
+    var fee = feeRate = estimate.feePerKb
+    var recipients = {}
+
+    // NOTE it seems that the bitgo testnet env doesn't return reasonable fee estimates
+    if (this.config.environment === 'test') {
+      fee = feeRate = 125000
+    }
+
+    if (fee > balance) return
+
+    wallet = await this.bitgo.wallets().get({ type: 'bitcoin', id: info.address })
+    for (i = 0; i < 2; i++) {
+      recipients[transitionAddr] = balance - fee
+
+      try {
+        transaction = await wallet.createTransaction({ recipients: recipients, feeRate: feeRate })
+        debug('unsignedTransitionTx', { satoshis: balance, estimate: fee, actual: transaction.fee })
+      } catch (ex) {
+        debug('createTransitionTransaction', ex)
+        this.runtime.newrelic.noticeError(ex, { recipients: recipients, feeRate: feeRate })
         return
       }
       if (fee <= transaction.fee) break
