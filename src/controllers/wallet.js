@@ -270,7 +270,7 @@ v1.prepTransition =
       }
       await wallets.update({ paymentId: paymentId }, state, { upsert: true })
     } else {
-      return reply(boom.badRequest('Current balance is less than the fee for sending funds'))
+      return reply(boom.paymentRequired('Current balance is less than the fee for sending funds'))
     }
 
     reply({ unsignedTx: result })
