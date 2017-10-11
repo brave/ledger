@@ -87,7 +87,7 @@ server.register(
         enabled: true,
         methods: [ 'get', 'post', 'delete', 'put', 'patch' ],
         overLimitError: (rate) => boom.tooManyRequests(`try again in ${rate.window} seconds`),
-        rateLimitKey: (request) => whitelist.ipaddr(request) + ':' + runtime.config.server.hostname,
+        rateLimitKey: (request) => whitelist.ipaddr(request) + ':' + runtime.config.server.host,
         redisClient: runtime.config.queue.client
       }
     },
