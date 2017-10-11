@@ -225,13 +225,15 @@ v1.write =
 
 /*
    GET /v1/wallet/{paymentId}/transition/{batPaymentId}
+   GET /v2/wallet/{paymentId}/transition/{batPaymentId}
  */
 
-v1.prepTransition =
+v2.prepTransition =
 { handler: (runtime) => {
   return async (request, reply) => {
     var balances, result, state, wallet
     var debug = braveHapi.debug(module, request)
+    var apiV = request.params.apiV
     var paymentId = request.params.paymentId.toLowerCase()
     var batPaymentId = request.params.batPaymentId.toLowerCase()
     var wallets = runtime.db.get('wallets', debug)
@@ -254,6 +256,8 @@ v1.prepTransition =
       return reply(resp)
     }
 
+    if (apiV === 'v1' && balances.confirmed > 6700000) reply(boom.notImplemented('transition of wallets with balances of more than 0.07 BTC is not supported by the v1 API'))
+
     const BAT_LEDGER_SERVER = process.env.BAT_LEDGER_SERVER || 'ledger-staging.mercury.basicattentiontoken.org'
     const url = `https://${BAT_LEDGER_SERVER}/v2/wallet/${batPaymentId}`
     result = await braveHapi.wreck.get(url)
@@ -270,7 +274,7 @@ v1.prepTransition =
       }
       await wallets.update({ paymentId: paymentId }, state, { upsert: true })
     } else {
-      return reply(boom.badRequest('Current balance is less than the fee for sending funds'))
+      return reply(boom.paymentRequired('Current balance is less than the fee for sending funds'))
     }
 
     reply({ unsignedTx: result })
@@ -282,6 +286,7 @@ v1.prepTransition =
 
   validate: {
     params: {
+      apiV: Joi.string().valid('v1', 'v2').required().description('the api version'),
       paymentId: Joi.string().guid().required().description('identity of the old BTC wallet'),
       batPaymentId: Joi.string().guid().required().description('identity of the new BAT wallet')
     }
@@ -296,13 +301,15 @@ v1.prepTransition =
 
 /*
    PUT /v1/wallet/{paymentId}/transition
+   PUT /v2/wallet/{paymentId}/transition
  */
 
-v1.transition =
+v2.transition =
 { handler: (runtime) => {
   return async (request, reply) => {
     var fee, result, wallet
     var debug = braveHapi.debug(module, request)
+    var apiV = request.params.apiV
     var paymentId = request.params.paymentId.toLowerCase()
     var signedTx = request.payload.signedTx
     var wallets = runtime.db.get('wallets', debug)
@@ -316,6 +323,11 @@ v1.transition =
       }
     } else {
       throw new Error('no existing transition tx for the specified paymentId')
+    }
+
+    if (apiV === 'v1') {
+      const balances = await runtime.wallet.balances(wallet)
+      if (balances.confirmed > 6700000) reply(boom.notImplemented('transition of wallets with balances of more than 0.07 BTC is not supported by the v1 API'))
     }
 
     result = await runtime.wallet.submitTx(wallet, signedTx)
@@ -337,7 +349,10 @@ v1.transition =
   tags: [ 'api' ],
 
   validate: {
-    params: { paymentId: Joi.string().guid().required().description('identity of the BTC wallet') },
+    params: {
+      apiV: Joi.string().valid('v1', 'v2').required().description('the api version'),
+      paymentId: Joi.string().guid().required().description('identity of the BTC wallet')
+    },
     payload: {
       signedTx: Joi.string().hex().required().description('signed transaction')
     }
@@ -450,8 +465,8 @@ module.exports.routes = [
   braveHapi.routes.async().path('/v1/wallet/{paymentId}').config(v1.read),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}').config(v1.write),
   braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/recover').config(v1.recover),
-  braveHapi.routes.async().put().path('/v1/wallet/{paymentId}/transition').config(v1.transition),
-  braveHapi.routes.async().path('/v1/wallet/{paymentId}/transition/{batPaymentId}').config(v1.prepTransition),
+  braveHapi.routes.async().put().path('/{apiV}/wallet/{paymentId}/transition').config(v2.transition),
+  braveHapi.routes.async().path('/{apiV}/wallet/{paymentId}/transition/{batPaymentId}').config(v2.prepTransition),
   braveHapi.routes.async().path('/v2/wallet/{paymentId}/recover').config(v2.recover)
 ]
 
