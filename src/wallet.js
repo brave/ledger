@@ -385,7 +385,13 @@ Wallet.providers.bitgo = {
       } catch (ex) {
         debug('createTransitionTransaction', ex)
         this.runtime.newrelic.noticeError(ex, { recipients: recipients, feeRate: feeRate })
-        return
+
+        // see https://github.com/BitGo/BitGoJS/blob/master/src/transactionBuilder.js
+        if (ex.toString().toLowerCase() === 'error: insufficient funds') {
+          return
+        }
+
+        throw ex
       }
       if (fee <= transaction.fee) break
 
