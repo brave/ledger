@@ -1,5 +1,7 @@
 var Slack = require('node-slack')
+var tldjs = require('tldjs')
 var underscore = require('underscore')
+var validateIP = require('validate-ip-node')
 
 var DB = require('./database')
 var Queue = require('./queue')
@@ -32,11 +34,13 @@ runtime.wallet = new Wallet(config, runtime)
 
 runtime.notify = (debug, payload) => {
   var params = runtime.config.slack
+  var username = runtime.npminfo.name
+  if (!validateIP(runtime.config.server.hostname)) username += '@' + tldjs.getSubdomain(runtime.config.server.hostname)
 
   if (!runtime.slack) return debug('notify', 'slack webhook not configured')
   underscore.defaults(payload, {
     channel: params.channel,
-    username: params.username || (runtime.npminfo.name + '@' + runtime.config.server.host),
+    username: params.username || username,
     icon_url: params.icon_url,
     text: 'ping.'
   })
