@@ -8,7 +8,7 @@ var underscore = require('underscore')
 
 var v1 = {}
 
-var slop = 35
+var slop = 60
 
 var server = async (request, reply, runtime) => {
   var entry, surveyor
