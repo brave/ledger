@@ -113,7 +113,10 @@ v1.create =
     var response = {}
     var credentials = runtime.db.get('credentials', debug)
 
-    if (process.env.NO_NEW_PERSONA) return reply(boom.locked())
+    if (process.env.NO_NEW_PERSONA) {
+      runtime.notify(debug, { channel: '#ledger-bot', text: 'persona creation disabled' })
+      return reply(boom.locked())
+    }
 
     registrar = server(request, runtime)
     if (!registrar) return reply(boom.notFound('unknown registrar'))
