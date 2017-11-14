@@ -383,11 +383,12 @@ Wallet.providers.bitgo = {
         transaction = await wallet.createTransaction({ recipients: recipients, feeRate: feeRate })
         debug('unsignedTransitionTx', { satoshis: balance, estimate: fee, actual: transaction.fee })
       } catch (ex) {
-        debug('createTransitionTransaction', ex)
+        debug('createTransitionTransaction', JSON.stringify(ex))
         this.runtime.newrelic.noticeError(ex, { recipients: recipients, feeRate: feeRate })
 
         // see https://github.com/BitGo/BitGoJS/blob/master/src/transactionBuilder.js
         if (ex.toString().toLowerCase() === 'error: insufficient funds') {
+          debug('createTransitionTransaction', ex.toString())
           return
         }
 
