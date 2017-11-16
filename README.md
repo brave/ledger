@@ -1,3 +1,4 @@
+# NOTE: This repo is deprecated, please see [bat-ledger](https://github.com/brave-intl/bat-ledger)
 # Brave Ledger
 The Brave Ledger is a BTC-based micropayments system for users and publishers.
 
