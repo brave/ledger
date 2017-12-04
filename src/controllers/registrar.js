@@ -151,7 +151,7 @@ v1.create =
               if (!viewing) return reply(boom.notFound('viewingId not valid: ' + uId))
 
               surveyorIds = viewing.surveyorIds || []
-              if (surveyorIds.length !== viewing.count) {
+              if ((!process.env.NO_NEW_CONTRIBUTIONS) && (surveyorIds.length !== viewing.count)) {
                 diagnostic = 'surveyorIds invalid found ' + surveyorIds.length + ', expecting ' + viewing.count +
                              ', surveyorId=' + viewing.surveyorId
                 runtime.notify(debug, { channel: '#devops-bot', text: 'viewing=' + uId + ': ' + diagnostic })

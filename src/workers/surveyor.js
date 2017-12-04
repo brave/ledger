@@ -12,6 +12,14 @@ var daily = async (debug, runtime) => {
 
   debug('daily', 'running')
 
+  if (process.env.NO_NEW_CONTRIBUTIONS) {
+    runtime.notify(debug, { channel: '#ledger-bot', text: 'contributions creation disabled' })
+
+    next = interval.next().getTime()
+    setTimeout(() => { daily(debug, runtime) }, next - underscore.now())
+    return debug('daily', 'running again ' + moment(next).fromNow())
+  }
+
   entries = await surveyors.find({ surveyorType: surveyorType, active: true }, { limit: 100, sort: { timestamp: -1 } })
   entries.forEach(async (entry) => {
     var payload, surveyor, validity
